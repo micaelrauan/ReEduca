@@ -1,23 +1,22 @@
 # AGENTS.md
 
 ## Package Manager
-Use **npm** (workspaces `apps/*`): `npm install`, `npm run dev`, `npm run build`
+Use **npm**: `npm install`, `npm run dev`, `npm run build`
 
 ## Stack
-- Next.js 15 App Router + TypeScript (`apps/web`)
-- MySQL via Prisma (`apps/web/prisma/schema.prisma`) — acesso só em Server Components e Route Handlers (`src/lib/db.ts`)
-- Clerk para auth (`@clerk/nextjs`); usuários espelhados em `User` via webhook `app/api/webhooks/clerk`; chaves reais obrigatórias em `.env`/`.env.local` (placeholders quebram o middleware em runtime)
+- Next.js 15 App Router + TypeScript (app na **raiz do repositório**, sem workspaces)
+- MySQL via Prisma (`prisma/schema.prisma`) — acesso só em Server Components e Route Handlers (`src/lib/db.ts`)
+- Clerk para auth (`@clerk/nextjs`); usuários espelhados em `User` via webhook `src/app/api/webhooks/clerk`; chaves reais obrigatórias em `.env`/`.env.local` (placeholders quebram o middleware em runtime)
 - Tailwind CSS 3 com design system próprio (`src/app/globals.css`); **sem** shadcn/ui
-- `react`/`react-dom` declarados TAMBÉM no `package.json` raiz (evita duplicação de cópias no monorepo → erro #31 no build)
 
 ## File-Scoped Commands
 | Tarefa | Comando |
 |--------|---------|
-| Dev | `npm run dev --prefix apps/web` |
-| Typecheck | `npx tsc --noEmit -p apps/web` |
-| Lint | `npm run lint --prefix apps/web` |
-| Lint arquivo | `npx eslint apps/web/src/<caminho>.ts(x)` |
-| Migration Prisma | `npx prisma migrate dev --schema apps/web/prisma/schema.prisma` |
+| Dev | `npm run dev` |
+| Typecheck | `npx tsc --noEmit` |
+| Lint | `npm run lint` |
+| Lint arquivo | `npx eslint src/<caminho>.ts(x)` |
+| Migration Prisma | `npx prisma migrate dev --name <nome>` |
 | Seed | `npx prisma db seed` |
 
 ## Convenções
@@ -29,7 +28,7 @@ Use **npm** (workspaces `apps/*`): `npm install`, `npm run dev`, `npm run build`
 - Padrões de migração: ver `docs/PLANO-MIGRACAO.md`.
 
 ## Estado Atual
-Migração Vite/PocketBase → Next.js/Clerk/Prisma **concluída** e legado **removido do disco e do versionamento**. Pendente do usuário: colar chaves reais do Clerk em `apps/web/.env`. Documentação: `README.md`.
+Migração Vite/PocketBase → Next.js/Clerk/Prisma **concluída**, legado removido e projeto **achatado para app único na raiz** (compatível com Hostinger Node hosting). Documentação: `README.md`.
 
 ## Commit Attribution
 AI commits MUST include:

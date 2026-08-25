@@ -21,11 +21,11 @@ Plataforma onde estudantes **vendem, trocam ou doam** materiais escolares — li
 ## Configuração
 
 ```bash
-npm install                # instala workspaces (raiz + apps/web)
-cp apps/web/.env.example apps/web/.env   # depois edite com seus valores
+npm install                # instala as dependências
+cp .env.example .env       # depois edite com seus valores
 ```
 
-Preencha o `apps/web/.env`:
+Preencha o `.env`:
 
 ```env
 DATABASE_URL="mysql://USUARIO:SENHA@localhost:3306/reduca"
@@ -37,7 +37,6 @@ CLERK_WEBHOOK_SECRET="whsec_..."                  # só se for testar webhooks l
 Crie o banco e popule com dados demo:
 
 ```bash
-cd apps/web
 npx prisma migrate dev        # cria as tabelas (migration init já versionada)
 npx prisma db seed            # 6 usuários demo + 6 anúncios de exemplo
 ```
@@ -46,22 +45,20 @@ npx prisma db seed            # 6 usuários demo + 6 anúncios de exemplo
 
 ## Executando
 
-Todos os comandos podem ser rodados pela raiz do monorepo ou dentro de `apps/web`.
-
-| Tarefa | Comando (raiz) |
-|--------|----------------|
+| Tarefa | Comando |
+|--------|---------|
 | Desenvolvimento | `npm run dev` → http://localhost:3000 |
 | Typecheck | `npm run typecheck` |
 | Lint | `npm run lint` |
 | Build de produção | `npm run build` |
 | Servir build | `npm start` |
-| Migration | `npx prisma migrate dev --schema apps/web/prisma/schema.prisma --name <nome>` |
-| Seed | `npx prisma db seed --schema apps/web/prisma/schema.prisma` |
+| Migration | `npx prisma migrate dev --name <nome>` |
+| Seed | `npx prisma db seed` |
 
 ## Estrutura
 
 ```
-apps/web/src/
+src/
 ├── middleware.ts              # clerkMiddleware + rotas protegidas
 ├── app/
 │   ├── layout.tsx             # ClerkProvider + AppShell global
@@ -137,7 +134,7 @@ Todas recebem/retornam JSON. Mutations exigem sessão Clerk válida.
 
 ## Deploy (referência)
 
-- Hospedagem: Vercel (projeto = `apps/web`) ou qualquer host Node.
+- Hospedagem: Vercel, Hostinger Node hosting ou qualquer host com Node 22 (app na raiz do repositório).
 - MySQL gerenciado (PlanetScale-like, RDS, etc.) → ajustar `DATABASE_URL`.
 - Variáveis de ambiente: as mesmas do `.env.example`.
 - Apontar o webhook do Clerk para `https://SEU-DOMINIO/api/webhooks/clerk`.

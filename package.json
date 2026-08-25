@@ -1,23 +1,42 @@
 {
-	"name": "monorepo",
+	"name": "reeduca",
 	"version": "1.0.0",
 	"private": true,
 	"scripts": {
-		"setup": "npm install",
-		"dev": "npm run dev --prefix apps/web",
-		"build": "npm run build --prefix apps/web",
-		"start": "npm run start --prefix apps/web",
-		"lint": "npm run lint --prefix apps/web",
-		"typecheck": "npm run typecheck --prefix apps/web"
+		"dev": "next dev --port 3000",
+		"build": "prisma generate && next build",
+		"start": "next start --port 3000",
+		"lint": "eslint src --max-warnings 0",
+		"typecheck": "tsc --noEmit"
 	},
-	"devDependencies": {
-		"knip": "^6.32.1"
+	"prisma": {
+		"seed": "node prisma/seed.js"
 	},
 	"dependencies": {
+		"@clerk/nextjs": "^6.12.0",
+		"@prisma/client": "^6.7.0",
+		"clsx": "^2.1.1",
+		"framer-motion": "^12.0.0",
+		"lucide-react": "^0.469.0",
+		"next": "^15.3.0",
 		"react": "^19.0.0",
-		"react-dom": "^19.0.0"
+		"react-dom": "^19.0.0",
+		"svix": "^1.44.0",
+		"tailwind-merge": "^2.6.0",
+		"zod": "^3.25.76"
 	},
-	"workspaces": [
-		"apps/*"
-	]
+	"devDependencies": {
+		"@eslint/eslintrc": "^3.3.0",
+		"@types/node": "^22.10.0",
+		"@types/react": "^19.0.0",
+		"@types/react-dom": "^19.0.0",
+		"autoprefixer": "^10.4.20",
+		"eslint": "^9.20.0",
+		"eslint-config-next": "^15.3.0",
+		"postcss": "^8.5.0",
+		"prisma": "^6.7.0",
+		"tailwindcss": "^3.4.17",
+		"tailwindcss-animate": "^1.0.7",
+		"typescript": "^5.7.0"
+	}
 }
