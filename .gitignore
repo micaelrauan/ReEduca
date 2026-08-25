@@ -25,9 +25,3 @@ yarn-error.log*
 Thumbs.db
 .vscode/
 .idea/
-
-# Snapshot legado do app antigo (grande, binário)
-app.tar.gz
-
-# Legado PocketBase (mantido em disco, fora do versionamento)
-apps/pocketbase/

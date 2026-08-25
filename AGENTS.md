@@ -29,7 +29,7 @@ Use **npm** (workspaces `apps/*`): `npm install`, `npm run dev`, `npm run build`
 - Padrões de migração: ver `docs/PLANO-MIGRACAO.md`.
 
 ## Estado Atual
-Migração Vite/PocketBase → Next.js/Clerk/Prisma **concluída** (ver status por fase e desvios em `docs/PLANO-MIGRACAO.md`). Pendente do usuário: colar chaves reais do Clerk em `apps/web/.env`. Snapshot legado: `app.tar.gz` na raiz.
+Migração Vite/PocketBase → Next.js/Clerk/Prisma **concluída** e legado **removido do disco e do versionamento**. Pendente do usuário: colar chaves reais do Clerk em `apps/web/.env`. Documentação: `README.md`.
 
 ## Commit Attribution
 AI commits MUST include:
