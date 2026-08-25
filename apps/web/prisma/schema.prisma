@@ -1,0 +1,142 @@
+generator client {
+	provider = "prisma-client-js"
+}
+
+datasource db {
+	provider = "mysql"
+	url      = env("DATABASE_URL")
+}
+
+model User {
+	id        String   @id // userId do Clerk (user_xxx)
+	email     String   @unique @db.VarChar(255)
+	name      String?  @db.VarChar(120)
+	imageUrl  String?
+	region    String?  @db.VarChar(120)
+	bio       String?  @db.VarChar(500)
+	createdAt DateTime @default(now())
+	updatedAt DateTime @updatedAt
+
+	listings         Listing[]
+	favorites        Favorite[]
+	messagesSent     Message[] @relation("Sender")
+	messagesReceived Message[] @relation("Recipient")
+	ratingsGiven     Rating[]  @relation("Author")
+	ratingsReceived  Rating[]  @relation("Target")
+	reports          Report[]
+}
+
+enum Category {
+	livros
+	apostilas
+	cadernos
+	papelaria
+	mochilas
+	calculadoras
+	tecnicos
+	equipamentos
+}
+
+enum Deal {
+	venda
+	troca
+	doacao
+}
+
+enum Condition {
+	novo
+	seminovo
+	usado
+	marcas_de_uso
+}
+
+enum ListingStatus {
+	ativo
+	reservado
+	concluido
+}
+
+model Listing {
+	id          String        @id @default(cuid())
+	title       String        @db.VarChar(120)
+	description String?       @db.VarChar(2000)
+	category    Category
+	deal        Deal
+	condition   Condition
+	price       Decimal?      @db.Decimal(10, 2)
+	wanted      String?       @db.VarChar(200)
+	region      String?       @db.VarChar(120)
+	status      ListingStatus @default(ativo)
+	photoUrls   Json?
+	sellerName  String?       @db.VarChar(120)
+	sellerRating Decimal?     @db.Decimal(2, 1)
+	ownerId     String
+	createdAt   DateTime      @default(now())
+	updatedAt   DateTime      @updatedAt
+
+	owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+	favorites Favorite[]
+	messages  Message[]
+	ratings   Rating[]
+	reports   Report[]
+
+	@@index([category])
+	@@index([deal])
+	@@index([status])
+	@@index([createdAt])
+}
+
+model Favorite {
+	ownerId   String
+	listingId String
+	createdAt DateTime @default(now())
+
+	owner   User    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+	listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+	@@id([ownerId, listingId])
+}
+
+model Message {
+	id          String   @id @default(cuid())
+	text        String   @db.VarChar(1000)
+	senderId    String
+	recipientId String
+	listingId   String?
+	createdAt   DateTime @default(now())
+
+	sender    User     @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+	recipient User     @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
+	listing   Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+	@@index([listingId])
+	@@index([senderId, recipientId])
+}
+
+model Rating {
+	id        String   @id @default(cuid())
+	stars     Int
+	comment   String?  @db.VarChar(500)
+	authorId  String
+	targetId  String
+	listingId String?
+	createdAt DateTime @default(now())
+
+	author  User     @relation("Author", fields: [authorId], references: [id], onDelete: Cascade)
+	target  User     @relation("Target", fields: [targetId], references: [id], onDelete: Cascade)
+	listing Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+
+	@@index([targetId])
+}
+
+model Report {
+	id         String   @id @default(cuid())
+	reason     String   @db.VarChar(500)
+	kind       String   @db.VarChar(20) // "anuncio" | "usuario"
+	reporterId String?
+	listingId  String?
+	createdAt  DateTime @default(now())
+
+	reporter User?    @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+	listing  Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}

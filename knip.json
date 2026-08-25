@@ -1,0 +1,25 @@
+{
+	"$schema": "https://unpkg.com/knip@5/schema.json",
+	"workspaces": {
+		".": {
+			"entry": ["package.json"],
+			"project": []
+		},
+		"apps/web": {
+			"entry": [
+				"eslint.config.mjs",
+				"next.config.mjs",
+				"package.json",
+				"postcss.config.js",
+				"prisma/seed.js",
+				"tailwind.config.ts",
+				"src/app/**/{page,layout,route}.tsx",
+				"src/middleware.ts"
+			],
+			"project": ["src/**/*.{ts,tsx}"],
+			"paths": {
+				"@/*": ["./src/*"]
+			}
+		}
+	}
+}

@@ -1,0 +1,33 @@
+# Dependências
+node_modules/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Build/TS
+*.tsbuildinfo
+
+# Variáveis de ambiente (NUNCA commitar — contêm senhas/chaves)
+.env
+.env.local
+.env*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# SO / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Snapshot legado do app antigo (grande, binário)
+app.tar.gz
+
+# Legado PocketBase (mantido em disco, fora do versionamento)
+apps/pocketbase/
