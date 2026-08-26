@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth, currentUser } from '@clerk/nextjs/server';
-import { db } from '@/lib/db';
-import { serializeListing, STATUSES } from '@/lib/reeduca';
+import { supabase } from '@/lib/supabase';
+import { serializeListing, STATUSES, type ListingWithOwnerName } from '@/lib/reeduca';
 import { ProfileClient, type ProfileData } from '@/components/profile/ProfileClient';
 
 export const dynamic = 'force-dynamic';
@@ -18,10 +18,11 @@ export default async function ProfilePage() {
 
 	const clerkUser = await currentUser();
 
-	let user = await db.user.findUnique({ where: { id: userId } });
+	let { data: user } = await supabase.from('users').select('*').eq('id', userId).single();
 	if (!user && clerkUser) {
-		user = await db.user.create({
-			data: {
+		const { data: newUser } = await supabase
+			.from('users')
+			.insert({
 				id: userId,
 				email:
 					clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)
@@ -30,31 +31,33 @@ export default async function ProfilePage() {
 					`${userId}@placeholder.clerk`,
 				name:
 					[clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || null,
-				imageUrl: clerkUser.imageUrl || null,
-			},
-		});
+				image_url: clerkUser.imageUrl || null,
+			})
+			.select()
+			.single();
+		user = newUser;
 	}
 
-	const [myListings, ratings] = await Promise.all([
-		db.listing.findMany({
-			where: { ownerId: userId },
-			orderBy: { createdAt: 'desc' as const },
-			include: { owner: { select: { name: true } } },
-		}),
-		db.rating.findMany({
-			where: { targetId: userId },
-			orderBy: { createdAt: 'desc' as const },
-			select: { id: true, stars: true, comment: true },
-		}),
+	const [{ data: myListings }, { data: ratings }] = await Promise.all([
+		supabase
+			.from('listings')
+			.select('*, owner:users!owner_id(name)')
+			.eq('owner_id', userId)
+			.order('created_at', { ascending: false }),
+		supabase
+			.from('ratings')
+			.select('id, stars, comment')
+			.eq('target_id', userId)
+			.order('created_at', { ascending: false }),
 	]);
 
 	const listingsByStatus: Record<string, ReturnType<typeof serializeListing>[]> = {};
 	for (const s of STATUSES) listingsByStatus[s.value] = [];
-	for (const l of myListings) {
-		listingsByStatus[l.status].push(serializeListing(l));
+	for (const l of myListings ?? []) {
+		listingsByStatus[l.status].push(serializeListing(l as ListingWithOwnerName));
 	}
 
-	const ratingAvg = ratings.length
+	const ratingAvg = ratings && ratings.length
 		? ratings.reduce((sum, r) => sum + r.stars, 0) / ratings.length
 		: 0;
 
@@ -63,7 +66,7 @@ export default async function ProfilePage() {
 		email: clerkUser?.emailAddresses[0]?.emailAddress ?? user?.email ?? '',
 		region: user?.region ?? null,
 		bio: user?.bio ?? null,
-		ratingsReceived: ratings,
+		ratingsReceived: ratings ?? [],
 		ratingAvg,
 	};
 

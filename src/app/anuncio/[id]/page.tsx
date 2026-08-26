@@ -6,12 +6,13 @@ import { auth } from '@clerk/nextjs/server';
 import { StarRating } from '@/components/StarRating';
 import { Gallery } from '@/components/listing/Gallery';
 import { ListingActions } from '@/components/listing/ListingActions';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import {
 	CONDITIONS,
 	DEALS,
 	type SerializedListing,
+	type ListingWithOwnerName,
 	dealStyle,
 	labelOf,
 	listingPhotos,
@@ -24,11 +25,13 @@ export const dynamic = 'force-dynamic';
 
 type PageProps = { params: Promise<{ id: string }> };
 
-async function getListing(id: string) {
-	return db.listing.findUnique({
-		where: { id },
-		include: { owner: { select: { name: true } } },
-	});
+async function getListing(id: string): Promise<ListingWithOwnerName | null> {
+	const { data } = await supabase
+		.from('listings')
+		.select('*, owner:users!owner_id(name)')
+		.eq('id', id)
+		.single();
+	return data as ListingWithOwnerName | null;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -54,13 +57,13 @@ export default async function ListingDetailPage({ params }: PageProps) {
 		const rec = await getListing(id);
 		if (!rec) notFound();
 		listing = serializeListing(rec);
-		const ratings = await db.rating.findMany({
-			where: { targetId: rec.ownerId },
-			select: { stars: true },
-		});
-		ratingsCount = ratings.length;
-		avg = ratings.length
-			? ratings.reduce((s, r) => s + r.stars, 0) / ratings.length
+		const { data: ratings } = await supabase
+			.from('ratings')
+			.select('stars')
+			.eq('target_id', rec.owner_id);
+		ratingsCount = ratings?.length ?? 0;
+		avg = ratingsCount
+			? ratings!.reduce((s, r) => s + r.stars, 0) / ratingsCount
 			: (listing.sellerRating ?? 0);
 	} catch (err) {
 		console.error('detail', err);

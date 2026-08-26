@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { ensureMirroredUser } from '@/lib/server-user';
 import { jsonError, parseBody } from '@/lib/api';
 import { profileUpdateSchema } from '@/lib/validators';
+import type { Database } from '@/lib/supabase-types';
 
 export async function PATCH(req: Request) {
 	const userId = await ensureMirroredUser();
@@ -12,15 +13,20 @@ export async function PATCH(req: Request) {
 	if (parsed.error) return parsed.error;
 	const data = parsed.data;
 
+	const updateData: Database['public']['Tables']['users']['Update'] = {};
+	if (data.name !== undefined) updateData.name = data.name || null;
+	if (data.region !== undefined) updateData.region = data.region || null;
+	if (data.bio !== undefined) updateData.bio = data.bio || null;
+
 	try {
-		const updated = await db.user.update({
-			where: { id: userId },
-			data: {
-				name: data.name === undefined ? undefined : data.name || null,
-				region: data.region === undefined ? undefined : data.region || null,
-				bio: data.bio === undefined ? undefined : data.bio || null,
-			},
-		});
+		const { data: updated, error } = await supabase
+			.from('users')
+			.update(updateData)
+			.eq('id', userId)
+			.select('id, name, region, bio')
+			.single();
+
+		if (error) throw error;
 		return NextResponse.json({
 			id: updated.id,
 			name: updated.name,

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { ensureMirroredUser } from '@/lib/server-user';
 import { jsonError, parseBody, firstParam } from '@/lib/api';
 import { messageSendSchema } from '@/lib/validators';
@@ -16,25 +16,23 @@ export async function GET(req: Request) {
 	}
 	if (otherId === userId) return jsonError('Conversa inválida.', 422);
 
-	const rows = await db.message.findMany({
-		where: {
-			listingId,
-			AND: [
-				{ senderId: { in: [userId, otherId] } },
-				{ recipientId: { in: [userId, otherId] } },
-			],
-		},
-		orderBy: { createdAt: 'asc' as const },
-		take: 500,
-	});
+	const { data: rows, error } = await supabase
+		.from('messages')
+		.select('*')
+		.eq('listing_id', listingId)
+		.or(`and(sender_id.in.(${userId},${otherId}),recipient_id.in.(${userId},${otherId}))`)
+		.order('created_at', { ascending: true })
+		.limit(500);
+
+	if (error) throw error;
 
 	return NextResponse.json(
-		rows.map((m) => ({
+		(rows ?? []).map((m) => ({
 			id: m.id,
 			text: m.text,
-			senderId: m.senderId,
-			listingId: m.listingId,
-			createdAt: m.createdAt.toISOString(),
+			senderId: m.sender_id,
+			listingId: m.listing_id,
+			createdAt: m.created_at,
 		})),
 	);
 }
@@ -49,23 +47,27 @@ export async function POST(req: Request) {
 
 	if (recipientId === userId) return jsonError('Não é possível conversar consigo mesmo.', 422);
 
-	const [recipient, listing] = await Promise.all([
-		db.user.findUnique({ where: { id: recipientId } }),
-		db.listing.findUnique({ where: { id: listingId } }),
+	const [{ data: recipient }, { data: listing }] = await Promise.all([
+		supabase.from('users').select('id').eq('id', recipientId).single(),
+		supabase.from('listings').select('id').eq('id', listingId).single(),
 	]);
 	if (!recipient || !listing) return jsonError('Destinatário ou anúncio não encontrado.', 404);
 
 	try {
-		const created = await db.message.create({
-			data: { text, senderId: userId, recipientId, listingId },
-		});
+		const { data: created, error } = await supabase
+			.from('messages')
+			.insert({ text, sender_id: userId, recipient_id: recipientId, listing_id: listingId })
+			.select()
+			.single();
+
+		if (error) throw error;
 		return NextResponse.json(
 			{
 				id: created.id,
 				text: created.text,
-				senderId: created.senderId,
-				listingId: created.listingId,
-				createdAt: created.createdAt.toISOString(),
+				senderId: created.sender_id,
+				listingId: created.listing_id,
+				createdAt: created.created_at,
 			},
 			{ status: 201 },
 		);

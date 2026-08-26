@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { ensureMirroredUser } from '@/lib/server-user';
 import { jsonError, parseBody } from '@/lib/api';
 import { reportCreateSchema } from '@/lib/validators';
@@ -13,9 +13,13 @@ export async function POST(req: Request) {
 	const { reason, kind, listingId } = parsed.data;
 
 	try {
-		const created = await db.report.create({
-			data: { reason, kind, reporterId: userId, listingId },
-		});
+		const { data: created, error } = await supabase
+			.from('reports')
+			.insert({ reason, kind, reporter_id: userId, listing_id: listingId })
+			.select()
+			.single();
+
+		if (error) throw error;
 		return NextResponse.json({ id: created.id }, { status: 201 });
 	} catch (err) {
 		console.error('POST /api/reports', err);

@@ -1,4 +1,4 @@
-import type { Listing, Prisma } from '@prisma/client';
+import type { Database } from './supabase-types';
 
 export const CATEGORIES = [
 	{ value: 'livros', label: 'Livros' },
@@ -46,6 +46,21 @@ export function dealStyle(value: string): string {
 	return DEALS.find((d) => d.value === value)?.className || 'bg-muted text-muted-foreground';
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Tipos de row do Supabase (snake_case)                                     */
+/* -------------------------------------------------------------------------- */
+
+export type UserRow = Database['public']['Tables']['users']['Row'];
+export type ListingRow = Database['public']['Tables']['listings']['Row'];
+export type RatingRow = Database['public']['Tables']['ratings']['Row'];
+
+/** Row de listing com join de owner (select name). */
+export type ListingWithOwnerName = ListingRow & { owner?: { name: string | null } | null };
+
+/* -------------------------------------------------------------------------- */
+/*  Serialização (row Supabase → formato client camelCase)                     */
+/* -------------------------------------------------------------------------- */
+
 /** Forma JSON-safe de um anúncio para consumo no client. */
 export type SerializedListing = {
 	id: string;
@@ -66,14 +81,12 @@ export type SerializedListing = {
 	createdAt: string;
 };
 
-type ListingWithOwner = Prisma.ListingGetPayload<{ include: { owner: { select: { name: true } } } }>;
-
-function photoUrlsOf(l: Pick<Listing, 'photoUrls'>): string[] {
-	if (Array.isArray(l.photoUrls)) return l.photoUrls as string[];
+function photoUrlsOf(l: Pick<ListingRow, 'photo_urls'>): string[] {
+	if (Array.isArray(l.photo_urls)) return l.photo_urls as string[];
 	return [];
 }
 
-export function serializeListing(l: ListingWithOwner): SerializedListing {
+export function serializeListing(l: ListingWithOwnerName): SerializedListing {
 	return {
 		id: l.id,
 		title: l.title,
@@ -86,11 +99,11 @@ export function serializeListing(l: ListingWithOwner): SerializedListing {
 		region: l.region,
 		status: l.status as StatusValue,
 		photoUrls: photoUrlsOf(l),
-		sellerName: l.sellerName,
-		sellerRating: l.sellerRating == null ? null : Number(l.sellerRating),
-		ownerId: l.ownerId,
+		sellerName: l.seller_name,
+		sellerRating: l.seller_rating == null ? null : Number(l.seller_rating),
+		ownerId: l.owner_id,
 		ownerName: l.owner?.name ?? null,
-		createdAt: l.createdAt.toISOString(),
+		createdAt: l.created_at,
 	};
 }
 

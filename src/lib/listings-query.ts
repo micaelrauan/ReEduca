@@ -1,16 +1,6 @@
-import type { Prisma } from '@prisma/client';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { serializeListing, type SerializedListing } from '@/lib/reeduca';
-import {
-	CATEGORIES,
-	CONDITIONS,
-	DEALS,
-	STATUSES,
-	type CategoryValue,
-	type ConditionValue,
-	type DealValue,
-	type StatusValue,
-} from '@/lib/reeduca';
+import { CATEGORIES, CONDITIONS, DEALS, STATUSES } from '@/lib/reeduca';
 
 export type RawSearchParams = Record<string, string | string[] | undefined>;
 
@@ -31,30 +21,47 @@ export async function searchListings(
 	const precoMax = Number(one(sp.precoMax)) || 0;
 	const ordenar = one(sp.ordenar) || 'recentes';
 
-	const where = {} as Prisma.ListingWhereInput;
-	if (q) where.OR = [{ title: { contains: q } }, { description: { contains: q } }];
-	if ((CATEGORIES.map((c) => c.value) as readonly string[]).includes(categoria))
-		where.category = categoria as CategoryValue;
-	if ((DEALS.map((d) => d.value) as readonly string[]).includes(tipo))
-		where.deal = tipo as DealValue;
-	if ((CONDITIONS.map((c) => c.value) as readonly string[]).includes(condicao))
-		where.condition = condicao as ConditionValue;
-	if ((STATUSES.map((s) => s.value) as readonly string[]).includes(status))
-		where.status = status as StatusValue;
-	if (regiao) where.region = { contains: regiao };
-	if (precoMax > 0) where.OR = [...(where.OR ?? []), { price: { lte: precoMax } }, { price: null }];
+	let query = supabase
+		.from('listings')
+		.select('*, owner:users!owner_id(name)')
+		.limit(Math.min(Math.max(take, 1), 200));
 
-	let orderBy: Prisma.ListingOrderByWithRelationInput[] = [{ createdAt: 'desc' }];
-	if (ordenar === 'menor') orderBy = [{ price: { sort: 'asc', nulls: 'last' } }];
-	if (ordenar === 'maior') orderBy = [{ price: { sort: 'desc', nulls: 'last' } }];
-	if (ordenar === 'avaliacao') orderBy = [{ sellerRating: { sort: 'desc', nulls: 'last' } }];
+	// Filtros
+	if (q) {
+		query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
+	}
+	if ((CATEGORIES.map((c) => c.value) as readonly string[]).includes(categoria)) {
+		query = query.eq('category', categoria);
+	}
+	if ((DEALS.map((d) => d.value) as readonly string[]).includes(tipo)) {
+		query = query.eq('deal', tipo);
+	}
+	if ((CONDITIONS.map((c) => c.value) as readonly string[]).includes(condicao)) {
+		query = query.eq('condition', condicao);
+	}
+	if ((STATUSES.map((s) => s.value) as readonly string[]).includes(status)) {
+		query = query.eq('status', status);
+	}
+	if (regiao) {
+		query = query.ilike('region', `%${regiao}%`);
+	}
+	if (precoMax > 0) {
+		query = query.or(`price.lte.${precoMax},price.is.null`);
+	}
 
-	const rows = await db.listing.findMany({
-		where,
-		orderBy,
-		take: Math.min(Math.max(take, 1), 200),
-		include: { owner: { select: { name: true } } },
-	});
+	// Ordenação
+	if (ordenar === 'menor') {
+		query = query.order('price', { ascending: true, nullsFirst: false });
+	} else if (ordenar === 'maior') {
+		query = query.order('price', { ascending: false, nullsFirst: false });
+	} else if (ordenar === 'avaliacao') {
+		query = query.order('seller_rating', { ascending: false, nullsFirst: false });
+	} else {
+		query = query.order('created_at', { ascending: false });
+	}
 
-	return { items: rows.map(serializeListing) };
+	const { data, error } = await query;
+	if (error) throw error;
+
+	return { items: (data ?? []).map(serializeListing) };
 }

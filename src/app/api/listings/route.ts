@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { ensureMirroredUser } from '@/lib/server-user';
 import { jsonError, parseBody } from '@/lib/api';
 import { listingCreateSchema } from '@/lib/validators';
@@ -26,11 +25,12 @@ export async function POST(req: Request) {
 	if (parsed.error) return parsed.error;
 	const data = parsed.data;
 
-	const user = await db.user.findUnique({ where: { id: userId } });
+	const { data: user } = await supabase.from('users').select('name').eq('id', userId).single();
 
 	try {
-		const created = await db.listing.create({
-			data: {
+		const { data: created, error } = await supabase
+			.from('listings')
+			.insert({
 				title: data.title,
 				description: data.description || null,
 				category: data.category,
@@ -40,12 +40,14 @@ export async function POST(req: Request) {
 				wanted: data.wanted || null,
 				region: data.region || null,
 				status: 'ativo',
-				photoUrls: data.photoUrls?.length ? data.photoUrls : Prisma.JsonNull,
-				sellerName: user?.name || 'Estudante ReEduca',
-				ownerId: userId,
-			},
-			include: { owner: { select: { name: true } } },
-		});
+				photo_urls: data.photoUrls?.length ? data.photoUrls : null,
+				seller_name: user?.name || 'Estudante ReEduca',
+				owner_id: userId,
+			})
+			.select('*, owner:users!owner_id(name)')
+			.single();
+
+		if (error) throw error;
 		return NextResponse.json(serializeListing(created), { status: 201 });
 	} catch (err) {
 		console.error('POST /api/listings', err);

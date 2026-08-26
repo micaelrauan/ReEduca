@@ -13,7 +13,7 @@ import {
 import { Dukinha } from '@/components/Dukinha';
 import { ListingsGrid } from '@/components/listing/ListingsGrid';
 import { CATEGORIES, serializeListing } from '@/lib/reeduca';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,13 +40,13 @@ const marqueeWords = [
 export default async function HomePage() {
 	let recent: ReturnType<typeof serializeListing>[] = [];
 	try {
-		const rows = await db.listing.findMany({
-			where: { status: 'ativo' },
-			orderBy: { createdAt: 'desc' },
-			take: 8,
-			include: { owner: { select: { name: true } } },
-		});
-		recent = rows.map(serializeListing);
+		const { data: rows } = await supabase
+			.from('listings')
+			.select('*, owner:users!owner_id(name)')
+			.eq('status', 'ativo')
+			.order('created_at', { ascending: false })
+			.limit(8);
+		recent = (rows ?? []).map(serializeListing);
 	} catch (err) {
 		console.error('home listings', err);
 	}

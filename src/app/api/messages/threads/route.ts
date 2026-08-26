@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { ensureMirroredUser } from '@/lib/server-user';
 import { jsonError } from '@/lib/api';
 
@@ -16,30 +16,28 @@ export async function GET() {
 	const userId = await ensureMirroredUser();
 	if (!userId) return jsonError('Faça login para ver conversas.', 401);
 
-	const rows = await db.message.findMany({
-		where: { OR: [{ senderId: userId }, { recipientId: userId }] },
-		orderBy: { createdAt: 'desc' as const },
-		take: 500,
-		include: {
-			listing: { select: { title: true } },
-			sender: { select: { name: true } },
-			recipient: { select: { name: true } },
-		},
-	});
+	const { data: rows, error } = await supabase
+		.from('messages')
+		.select('*, listing:listings(title), sender:users!sender_id(name), recipient:users!recipient_id(name)')
+		.or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
+		.order('created_at', { ascending: false })
+		.limit(500);
+
+	if (error) throw error;
 
 	const map = new Map<string, ThreadSummary>();
-	for (const m of rows) {
-		if (!m.listingId) continue;
-		const isSender = m.senderId === userId;
-		const other = isSender ? m.recipientId : m.senderId;
-		const key = `${m.listingId}-${other}`;
+	for (const m of rows ?? []) {
+		if (!m.listing_id) continue;
+		const isSender = m.sender_id === userId;
+		const other = isSender ? m.recipient_id : m.sender_id;
+		const key = `${m.listing_id}-${other}`;
 		if (map.has(key)) continue;
 		map.set(key, {
 			key,
-			listingId: m.listingId,
-			listingTitle: m.listing?.title || 'Anúncio',
+			listingId: m.listing_id,
+			listingTitle: (m.listing as { title: string } | null)?.title || 'Anúncio',
 			otherId: other,
-			otherName: (isSender ? m.recipient?.name : m.sender?.name) || 'Estudante',
+			otherName: ((isSender ? m.recipient : m.sender) as { name: string | null } | null)?.name || 'Estudante',
 			last: m.text,
 		});
 	}

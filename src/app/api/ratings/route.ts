@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { ensureMirroredUser } from '@/lib/server-user';
 import { jsonError, parseBody } from '@/lib/api';
 import { ratingCreateSchema } from '@/lib/validators';
@@ -14,16 +14,20 @@ export async function POST(req: Request) {
 
 	if (targetId === userId) return jsonError('Você não pode avaliar a si mesmo.', 422);
 
-	const [target, listing] = await Promise.all([
-		db.user.findUnique({ where: { id: targetId } }),
-		db.listing.findUnique({ where: { id: listingId } }),
+	const [{ data: target }, { data: listing }] = await Promise.all([
+		supabase.from('users').select('id').eq('id', targetId).single(),
+		supabase.from('listings').select('id').eq('id', listingId).single(),
 	]);
 	if (!target || !listing) return jsonError('Usuário ou anúncio não encontrado.', 404);
 
 	try {
-		const created = await db.rating.create({
-			data: { stars, comment: comment || null, authorId: userId, targetId, listingId },
-		});
+		const { data: created, error } = await supabase
+			.from('ratings')
+			.insert({ stars, comment: comment || null, author_id: userId, target_id: targetId, listing_id: listingId })
+			.select()
+			.single();
+
+		if (error) throw error;
 		return NextResponse.json({ id: created.id }, { status: 201 });
 	} catch (err) {
 		console.error('POST /api/ratings', err);

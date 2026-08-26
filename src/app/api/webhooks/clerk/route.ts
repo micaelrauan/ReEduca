@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { Webhook } from 'svix';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 type ClerkEmail = { id: string; emailAddress: string };
 
@@ -57,29 +57,20 @@ export async function POST(req: Request) {
 			case 'user.updated': {
 				const email = primaryEmail(event.data);
 				if (!email) break;
-				await db.user.upsert({
-					where: { id: event.data.id },
-					update: {
-						email,
-						name:
-							[event.data.first_name, event.data.last_name].filter(Boolean).join(' ') ||
-							null,
-						imageUrl: event.data.image_url ?? null,
-					},
-					create: {
-						id: event.data.id,
-						email,
-						name:
-							[event.data.first_name, event.data.last_name].filter(Boolean).join(' ') ||
-							null,
-						imageUrl: event.data.image_url ?? null,
-					},
+				const name =
+					[event.data.first_name, event.data.last_name].filter(Boolean).join(' ') ||
+					null;
+				await supabase.from('users').upsert({
+					id: event.data.id,
+					email,
+					name,
+					image_url: event.data.image_url ?? null,
 				});
 				break;
 			}
 			case 'user.deleted': {
 				if (event.data.id) {
-					await db.user.deleteMany({ where: { id: event.data.id } });
+					await supabase.from('users').delete().eq('id', event.data.id);
 				}
 				break;
 			}

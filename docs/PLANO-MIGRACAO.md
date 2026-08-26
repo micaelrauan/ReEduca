@@ -1,24 +1,26 @@
 # Plano de Migração — Reeduca
 
-> ## Status da Execução (2026-08-25)
+> ## Status da Execução (2026-08-26)
 >
 > | Fase | Status | Observações |
 > |------|--------|-------------|
 > | 0 — Scaffold Next.js TS | ✅ | Backup legado em `%TEMP%\opencode\reeduca-legacy` + `app.tar.gz` |
-> | 1 — Prisma + MySQL | ✅ | MySQL80 local; migrate `init` + seed aplicados (6 usuários demo, 6 anúncios) |
-> | 2 — Clerk | ✅ código | Falta colar chaves reais em `apps/web/.env` (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET`) — placeholders causam 500 no middleware em runtime |
-> | 3 — API Route Handlers | ✅ | zod + ownership; `ensureMirroredUser` cria espelho no 1º request autenticado |
-> | 4 — Páginas | ✅ | 21 rotas dinâmicas; chat com polling 4s (SSE/WebSocket fica para depois) |
-> | 5 — Limpeza | ✅ | `apps/pocketbase`, Vite, plugins removidos; scripts raiz simplificados |
-> | 6 — Verificação | ✅* | typecheck ✓ lint ✓ build ✓ (Next 15.5) ; smoke test público bloqueado só pelas chaves Clerk |
+> | 1 — Prisma + MySQL | ✅ | MySQL80 local; migrate `init` + seed aplicados |
+> | 2 — Clerk | ✅ | Chaves reais de teste configuradas |
+> | 3 — API Route Handlers | ✅ | zod + ownership; `ensureMirroredUser` cria espelho no 1º request |
+> | 4 — Páginas | ✅ | 21 rotas dinâmicas; chat com polling 4s |
+> | 5 — Limpeza | ✅ | `apps/pocketbase`, Vite, plugins removidos |
+> | 6 — Verificação | ✅ | typecheck ✓ lint ✓ build ✓ |
+> | **7 — Prisma → Supabase** | ✅ | **2026-08-26**: Prisma/MySQL removidos, Supabase Postgres via `@supabase/supabase-js`. Ver `docs/PLANO-SUPABASE.md` |
 >
 > ### Desvios em relação ao plano original
 > - **shadcn/ui não foi portado**: auditoria mostrou que nenhuma página importava `components/ui/*`; o app sempre usou classes Tailwind diretas. Radix/react-hook-form/sonner saíram das dependências.
 > - **Fotos**: uploads viraram lista de URLs (`photoUrls Json`); storage externo continua como fase futura.
 > - **React fixado também no package.json raiz** — correção para o erro #31 de prerender (`/_error:/404`) causado por duas cópias do React no monorepo npm (lockfile antigo).
 > - `dynamic = 'force-dynamic'` no root layout (shell depende de estado de auth em todas as rotas).
+> - **Prisma → Supabase (2026-08-26)**: Prisma/MySQL removidos e substituídos por `@supabase/supabase-js` + Supabase Postgres. Ver `docs/PLANO-SUPABASE.md`.
 
-Migração do monorepo atual (Vite + React SPA + PocketBase) para **Next.js (App Router) + MySQL (Prisma) + Clerk**.
+Migração do monorepo atual (Vite + React SPA + PocketBase) para **Next.js (App Router) + Supabase (Postgres) + Clerk**. Posteriormente, Prisma/MySQL foi substituído por `@supabase/supabase-js`.
 
 ## 1. Estado Atual
 

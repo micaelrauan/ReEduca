@@ -7,15 +7,15 @@ Plataforma onde estudantes **vendem, trocam ou doam** materiais escolares — li
 | Camada | Tecnologia |
 |--------|------------|
 | Framework | Next.js 15 (App Router) + TypeScript |
-| Banco de dados | MySQL 8 + Prisma ORM 6 |
-| Autenticação | Clerk (`@clerk/nextjs`) com espelho de usuários no MySQL |
+| Banco de dados | Supabase Postgres via `@supabase/supabase-js` |
+| Autenticação | Clerk (`@clerk/nextjs`) com espelho de usuários no Supabase |
 | Estilo | Tailwind CSS 3 (design system próprio em `globals.css`) |
 | Validação | Zod em toda Route Handler |
 
 ## Requisitos
 
 - Node.js **22** (ver `.nvmrc`)
-- MySQL 8 rodando localmente
+- Conta no [Supabase](https://supabase.com) (plano free atende)
 - Conta no [Clerk](https://clerk.com) (plano free atende)
 
 ## Configuração
@@ -28,32 +28,34 @@ cp .env.example .env       # depois edite com seus valores
 Preencha o `.env`:
 
 ```env
-DATABASE_URL="mysql://USUARIO:SENHA@localhost:3306/reduca"
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."   # dashboard.clerk.com → API Keys
+# Supabase (https://supabase.com/dashboard → Project Settings → API)
+SUPABASE_URL="https://SEU-PROJETO.supabase.co"
+SUPABASE_ANON_KEY="eyJ..."
+SUPABASE_SERVICE_ROLE_KEY="eyJ..."
+
+# Clerk (https://dashboard.clerk.com → API Keys)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
 CLERK_SECRET_KEY="sk_test_..."
-CLERK_WEBHOOK_SECRET="whsec_..."                  # só se for testar webhooks localmente
 ```
 
-Crie o banco e popule com dados demo:
+Crie o schema do banco no Supabase:
 
-```bash
-npx prisma migrate dev        # cria as tabelas (migration init já versionada)
-npx prisma db seed            # 6 usuários demo + 6 anúncios de exemplo
-```
+1. Acesse o [SQL Editor](https://supabase.com/dashboard/project/_/sql/new) no painel do Supabase
+2. Cole e execute o SQL completo em `docs/PLANO-SUPABASE.md` (seção 3 — Schema SQL)
+3. (Opcional) Execute os inserts de seed para dados demo
 
-> O Prisma cria todas as tabelas automaticamente a partir de `prisma/schema.prisma`. Para explorar os dados use `npx prisma studio`.
+> Para regenerar os tipos TypeScript do banco: `npx supabase gen types typescript --project-id <ref> > src/lib/supabase-types.ts`
 
 ## Executando
 
 | Tarefa | Comando |
 |--------|---------|
 | Desenvolvimento | `npm run dev` → http://localhost:3000 |
-| Typecheck | `npm run typecheck` |
+| Typecheck | `npx tsc --noEmit` |
 | Lint | `npm run lint` |
 | Build de produção | `npm run build` |
 | Servir build | `npm start` |
-| Migration | `npx prisma migrate dev --name <nome>` |
-| Seed | `npx prisma db seed` |
+| Gerar tipos Supabase | `npx supabase gen types typescript --project-id <ref> > src/lib/supabase-types.ts` |
 
 ## Estrutura
 
@@ -78,27 +80,28 @@ src/
 │   └── profile/
 ├── hooks/useFavorites.ts      # favoritos sincronizados via API
 └── lib/
-    ├── db.ts                  # singleton PrismaClient (só servidor)
+    ├── supabase.ts            # singleton do Supabase client (service role)
+    ├── supabase-types.ts      # tipos gerados do schema do banco
     ├── reeduca.ts             # constantes de domínio + helpers + serialização
+    ├── listings-query.ts      # lógica de busca/filtros
     ├── validators.ts          # schemas zod das rotas
-    └── server-user.ts         # espelho do usuário Clerk na tabela User
-prisma/
-├── schema.prisma              # fonte da verdade do banco
-└── seed.js
+    └── server-user.ts         # espelho do usuário Clerk na tabela users
 ```
 
 ## Modelo de dados
 
 | Tabela | Função |
 |--------|--------|
-| `user` | Espelho dos usuários do Clerk (`id` = userId Clerk) + `region`, `bio` |
-| `listing` | Anúncio: título, categoria, tipo (venda/troca/doação), condição, preço, região, status, `photoUrls` (links) |
-| `favorite` | Favorito (par único usuário+anúncio) |
-| `message` | Mensagens do chat entre dois usuários sobre um anúncio |
-| `rating` | Avaliação 1–5 estrelas de um usuário para outro |
-| `report` | Denúncia de anúncio ou usuário |
+| `users` | Espelho dos usuários do Clerk (`id` = userId Clerk) + `region`, `bio` |
+| `listings` | Anúncio: título, categoria, tipo (venda/troca/doação), condição, preço, região, status, `photo_urls` (JSON) |
+| `favorites` | Favorito (par único usuário+anúncio) |
+| `messages` | Mensagens do chat entre dois usuários sobre um anúncio |
+| `ratings` | Avaliação 1–5 estrelas de um usuário para outro |
+| `reports` | Denúncia de anúncio ou usuário |
 
-Relações usam `onDelete: Cascade` (ex.: apagar usuário apaga seus anúncios/favoritos/mensagens).
+Todas as tabelas usam `ON DELETE CASCADE` (ex.: apagar usuário apaga seus anúncios/favoritos/mensagens).
+
+Schema SQL completo: `docs/PLANO-SUPABASE.md` (seção 3).
 
 ## Rotas da aplicação
 
@@ -124,18 +127,18 @@ Todas recebem/retornam JSON. Mutations exigem sessão Clerk válida.
 | `POST /api/ratings` | Avalia `{targetId, listingId, stars(1–5), comment}` |
 | `POST /api/reports` | Denuncia `{reason, kind, listingId}` |
 | `PATCH /api/profile` | Atualiza `name`, `region`, `bio` |
-| `POST /api/webhooks/clerk` | Sync `user.created/updated/deleted` → tabela `user` (assinatura svix) |
+| `POST /api/webhooks/clerk` | Sync `user.created/updated/deleted` → tabela `users` (assinatura svix) |
 
-## Sincronização de usuários (Clerk ↔ MySQL)
+## Sincronização de usuários (Clerk ↔ Supabase)
 
 1. Usuário entra pelo `<SignIn/>` do Clerk.
-2. Na primeira ação autenticada, `ensureMirroredUser()` cria a linha na tabela `user`.
+2. Na primeira ação autenticada, `ensureMirroredUser()` cria a linha na tabela `users`.
 3. Alterações de perfil no Clerk chegam pelo webhook `POST /api/webhooks/clerk` (validado com svix) e fazem upsert/delete.
 
 ## Deploy (referência)
 
 - Hospedagem: Vercel, Hostinger Node hosting ou qualquer host com Node 22 (app na raiz do repositório).
-- MySQL gerenciado (PlanetScale-like, RDS, etc.) → ajustar `DATABASE_URL`.
+- Supabase gerenciado (plano free atende) → ajustar `SUPABASE_URL` e keys.
 - Variáveis de ambiente: as mesmas do `.env.example`.
 - Apontar o webhook do Clerk para `https://SEU-DOMINIO/api/webhooks/clerk`.
 
@@ -144,4 +147,6 @@ Todas recebem/retornam JSON. Mutations exigem sessão Clerk válida.
 - Rotas e copy da UI em português; código/identificadores em inglês.
 - Server Components por padrão; `"use client"` só onde há interatividade.
 - Entrada validada com zod; autorização sempre via `auth()` + ownership.
+- Todas as queries ao banco usam `supabase` de `src/lib/supabase.ts` (service role, bypass RLS).
+- Nunca expor `SUPABASE_SERVICE_ROLE_KEY` no client-side.
 - Detalhes para agentes de IA: ver [`AGENTS.md`](AGENTS.md).

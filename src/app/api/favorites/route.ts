@@ -1,20 +1,28 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { ensureMirroredUser } from '@/lib/server-user';
 import { jsonError, parseBody, firstParam } from '@/lib/api';
 import { favoriteActionSchema } from '@/lib/validators';
-import { serializeListing } from '@/lib/reeduca';
+import { serializeListing, type ListingWithOwnerName } from '@/lib/reeduca';
 
 export async function GET() {
 	const userId = await ensureMirroredUser();
 	if (!userId) return jsonError('Faça login para ver favoritos.', 401);
 
-	const rows = await db.favorite.findMany({
-		where: { ownerId: userId },
-		orderBy: { createdAt: 'desc' },
-		include: { listing: { include: { owner: { select: { name: true } } } } },
-	});
-	return NextResponse.json(rows.map((f) => serializeListing(f.listing)));
+	const { data, error } = await supabase
+		.from('favorites')
+		.select('listing:listings(*, owner:users!owner_id(name))')
+		.eq('owner_id', userId)
+		.order('created_at', { ascending: false });
+
+	if (error) throw error;
+
+	const listings = (data ?? [])
+		.map((f) => f.listing)
+		.filter(Boolean)
+		.map((l) => serializeListing(l as ListingWithOwnerName));
+
+	return NextResponse.json(listings);
 }
 
 export async function POST(req: Request) {
@@ -24,14 +32,19 @@ export async function POST(req: Request) {
 	const parsed = await parseBody(req, favoriteActionSchema);
 	if (parsed.error) return parsed.error;
 
-	const listing = await db.listing.findUnique({ where: { id: parsed.data.listingId } });
+	const { data: listing } = await supabase
+		.from('listings')
+		.select('id')
+		.eq('id', parsed.data.listingId)
+		.single();
 	if (!listing) return jsonError('Anúncio não encontrado.', 404);
 
-	await db.favorite.upsert({
-		where: { ownerId_listingId: { ownerId: userId, listingId: parsed.data.listingId } },
-		update: {},
-		create: { ownerId: userId, listingId: parsed.data.listingId },
+	const { error } = await supabase.from('favorites').upsert({
+		owner_id: userId,
+		listing_id: parsed.data.listingId,
 	});
+	if (error) throw error;
+
 	return NextResponse.json({ ok: true }, { status: 201 });
 }
 
@@ -43,6 +56,12 @@ export async function DELETE(req: Request) {
 	const listingId = firstParam(url.searchParams.get('listingId') ?? undefined);
 	if (!listingId) return jsonError('listingId obrigatório.', 422);
 
-	await db.favorite.deleteMany({ where: { ownerId: userId, listingId } });
+	const { error } = await supabase
+		.from('favorites')
+		.delete()
+		.eq('owner_id', userId)
+		.eq('listing_id', listingId);
+	if (error) throw error;
+
 	return NextResponse.json({ ok: true });
 }

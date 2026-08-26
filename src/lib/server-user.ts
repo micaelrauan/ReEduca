@@ -1,5 +1,5 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 export async function getAuthUserId(): Promise<string | null> {
 	const { userId } = await auth();
@@ -11,23 +11,29 @@ export async function ensureMirroredUser(): Promise<string | null> {
 	const userId = await getAuthUserId();
 	if (!userId) return null;
 
-	const existing = await db.user.findUnique({ where: { id: userId } });
+	const { data: existing } = await supabase
+		.from('users')
+		.select('id')
+		.eq('id', userId)
+		.single();
 	if (existing) return userId;
 
 	const clerkUser = await currentUser();
-	await db.user.create({
-		data: {
-			id: userId,
-			email:
-				clerkUser?.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)
-					?.emailAddress ||
-				clerkUser?.emailAddresses[0]?.emailAddress ||
-				`${userId}@placeholder.clerk`,
-			name: clerkUser
-				? [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || null
-				: null,
-			imageUrl: clerkUser?.imageUrl ?? null,
-		},
+	const email =
+		clerkUser?.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)
+			?.emailAddress ||
+		clerkUser?.emailAddresses[0]?.emailAddress ||
+		`${userId}@placeholder.clerk`;
+	const name = clerkUser
+		? [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || null
+		: null;
+
+	await supabase.from('users').insert({
+		id: userId,
+		email,
+		name,
+		image_url: clerkUser?.imageUrl ?? null,
 	});
+
 	return userId;
 }
