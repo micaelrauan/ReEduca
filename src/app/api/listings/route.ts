@@ -9,8 +9,8 @@ import { searchListings } from '@/lib/listings-query';
 export async function GET(req: Request) {
 	try {
 		const url = new URL(req.url);
-		const { items } = await searchListings(Object.fromEntries(url.searchParams));
-		return NextResponse.json(items);
+		const result = await searchListings(Object.fromEntries(url.searchParams));
+		return NextResponse.json(result);
 	} catch (err) {
 		console.error('GET /api/listings', err);
 		return jsonError('Não conseguimos carregar os anúncios agora.', 500);

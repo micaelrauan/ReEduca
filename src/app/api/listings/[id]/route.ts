@@ -4,6 +4,7 @@ import { getAuthUserId } from '@/lib/server-user';
 import { jsonError, parseBody } from '@/lib/api';
 import { listingUpdateSchema } from '@/lib/validators';
 import { serializeListing, type ListingWithOwnerName } from '@/lib/reeduca';
+import { deleteListingPhotos } from '@/lib/storage';
 import type { Database } from '@/lib/supabase-types';
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -78,6 +79,10 @@ export async function DELETE(_req: Request, ctx: RouteContext) {
 	if (listing.owner_id !== userId) return jsonError('Este anúncio não é seu.', 403);
 
 	try {
+		await deleteListingPhotos(id).catch((err) =>
+			console.error('Erro ao limpar fotos do Storage:', err),
+		);
+
 		const { error } = await supabase.from('listings').delete().eq('id', id);
 		if (error) throw error;
 		return NextResponse.json({ ok: true });

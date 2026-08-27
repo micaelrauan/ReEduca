@@ -8,10 +8,19 @@ function one(value: string | string[] | undefined): string {
 	return (Array.isArray(value) ? value[0] : value)?.trim() || '';
 }
 
+export const PAGE_SIZE = 24;
+
+export type PaginatedResult = {
+	items: SerializedListing[];
+	total: number;
+	page: number;
+	pageSize: number;
+	totalPages: number;
+};
+
 export async function searchListings(
 	sp: RawSearchParams,
-	take = 200,
-): Promise<{ items: SerializedListing[] }> {
+): Promise<PaginatedResult> {
 	const q = one(sp.q);
 	const categoria = one(sp.categoria);
 	const tipo = one(sp.tipo);
@@ -20,11 +29,12 @@ export async function searchListings(
 	const regiao = one(sp.regiao);
 	const precoMax = Number(one(sp.precoMax)) || 0;
 	const ordenar = one(sp.ordenar) || 'recentes';
+	const page = Math.max(1, Number(one(sp.page)) || 1);
+	const pageSize = PAGE_SIZE;
 
 	let query = supabase
 		.from('listings')
-		.select('*, owner:users!owner_id(name)')
-		.limit(Math.min(Math.max(take, 1), 200));
+		.select('*, owner:users!owner_id(name)', { count: 'exact' });
 
 	// Filtros
 	if (q) {
@@ -60,8 +70,22 @@ export async function searchListings(
 		query = query.order('created_at', { ascending: false });
 	}
 
-	const { data, error } = await query;
+	// Paginação
+	const from = (page - 1) * pageSize;
+	const to = from + pageSize - 1;
+	query = query.range(from, to);
+
+	const { data, error, count } = await query;
 	if (error) throw error;
 
-	return { items: (data ?? []).map(serializeListing) };
+	const total = count ?? 0;
+	const totalPages = Math.ceil(total / pageSize);
+
+	return {
+		items: (data ?? []).map(serializeListing),
+		total,
+		page,
+		pageSize,
+		totalPages,
+	};
 }

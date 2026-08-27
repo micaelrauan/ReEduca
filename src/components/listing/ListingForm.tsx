@@ -1,10 +1,11 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { useState, useCallback } from 'react';
 import { CATEGORIES, CONDITIONS, DEALS, STATUSES } from '@/lib/reeduca';
 import { cn } from '@/lib/utils';
+import { PhotoUploader } from './PhotoUploader';
+import { uploadListingPhoto } from '@/lib/storage';
 
 const field =
 	'w-full rounded-xl border border-border bg-card px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-ring';
@@ -53,24 +54,34 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 		region: initial?.region ?? '',
 		status: initial?.status ?? 'ativo',
 	});
-	const [photoUrls, setPhotoUrls] = useState<string[]>(initial?.photoUrls ?? []);
-	const [newUrl, setNewUrl] = useState('');
+	const [existingUrls, setExistingUrls] = useState<string[]>(initial?.photoUrls ?? []);
+	const [newFiles, setNewFiles] = useState<File[]>([]);
 	const [saving, setSaving] = useState(false);
+	const [uploading, setUploading] = useState(false);
 	const [error, setError] = useState('');
 
 	const set = (key: keyof FormState, value: string) => setForm((f) => ({ ...f, [key]: value }));
 
-	const addUrl = () => {
-		const url = newUrl.trim();
-		if (!url || photoUrls.length >= 5) return;
-		setPhotoUrls((prev) => [...prev, url]);
-		setNewUrl('');
+	const handleFilesChange = useCallback((files: File[]) => {
+		setNewFiles(files);
+	}, []);
+
+	const uploadPhotos = async (id: string): Promise<string[]> => {
+		const urls: string[] = [...existingUrls];
+
+		for (let i = 0; i < newFiles.length; i++) {
+			const url = await uploadListingPhoto(id, newFiles[i], urls.length);
+			urls.push(url);
+		}
+
+		return urls;
 	};
 
 	const submit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setError('');
 		setSaving(true);
+		setUploading(false);
 		try {
 			const payload = {
 				title: form.title,
@@ -83,8 +94,9 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 				price:
 					form.deal === 'venda' && form.price ? Number(form.price.replace(',', '.')) : null,
 				wanted: form.deal === 'troca' ? form.wanted : '',
-				photoUrls,
+				photoUrls: existingUrls,
 			};
+
 			const res = await fetch(
 				mode === 'edit' ? `/api/listings/${listingId}` : '/api/listings',
 				{
@@ -98,13 +110,35 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 				setError(data?.error || 'Não foi possível salvar o anúncio.');
 				return;
 			}
-			router.push(`/anuncio/${data.id}`);
+
+			const id = data.id as string;
+
+			if (newFiles.length > 0) {
+				setUploading(true);
+				try {
+					const allUrls = await uploadPhotos(id);
+					await fetch(`/api/listings/${id}`, {
+						method: 'PATCH',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ photoUrls: allUrls }),
+					});
+				} catch {
+					setError('Anúncio salvo, mas houve erro ao enviar as fotos. Você pode editá-lo depois.');
+					router.push(`/anuncio/${id}`);
+					return;
+				}
+			}
+
+			router.push(`/anuncio/${id}`);
 		} catch {
 			setError('Não foi possível salvar o anúncio.');
 		} finally {
 			setSaving(false);
+			setUploading(false);
 		}
 	};
+
+	const isBusy = saving || uploading;
 
 	return (
 		<form onSubmit={submit} className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6">
@@ -161,49 +195,13 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 				/>
 			</label>
 
-			<div className="space-y-2">
-				<p className="text-sm font-semibold">Fotos (até 5 links)</p>
-				{photoUrls.length > 0 && (
-					<div className="flex flex-wrap gap-3">
-						{photoUrls.map((url, i) => (
-							<div key={`${url}-${i}`} className="relative">
-								<img src={url} alt="" className="h-20 w-20 rounded-xl object-cover" />
-								<button
-									type="button"
-									aria-label="Remover foto"
-									onClick={() => setPhotoUrls((prev) => prev.filter((_, j) => j !== i))}
-									className="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-destructive-foreground"
-								>
-									<Trash2 className="h-3 w-3" />
-								</button>
-							</div>
-						))}
-					</div>
-				)}
-				{photoUrls.length < 5 && (
-					<div className="flex gap-2">
-						<input
-							className={field}
-							value={newUrl}
-							onChange={(e) => setNewUrl(e.target.value)}
-							placeholder="Cole o link de uma foto (https://...)"
-							onKeyDown={(e) => {
-								if (e.key === 'Enter') {
-									e.preventDefault();
-									addUrl();
-								}
-							}}
-						/>
-						<button
-							type="button"
-							onClick={addUrl}
-							className="min-h-[44px] shrink-0 rounded-xl border border-border px-4 text-sm font-semibold"
-						>
-							Adicionar
-						</button>
-					</div>
-				)}
-			</div>
+			<PhotoUploader
+				existingUrls={existingUrls}
+				onUrlsChange={setExistingUrls}
+				newFiles={newFiles}
+				onFilesChange={handleFilesChange}
+				disabled={isBusy}
+			/>
 
 			<div className="space-y-2">
 				<p className="text-sm font-semibold">Tipo de negociação</p>
@@ -296,10 +294,16 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 
 			<button
 				type="submit"
-				disabled={saving}
+				disabled={isBusy}
 				className="min-h-[48px] w-full rounded-full bg-primary px-5 font-bold text-primary-foreground transition-transform active:scale-[0.98] disabled:opacity-60"
 			>
-				{saving ? 'Salvando...' : mode === 'edit' ? 'Salvar alterações' : 'Publicar anúncio'}
+				{uploading
+					? 'Enviando fotos...'
+					: saving
+						? 'Salvando...'
+						: mode === 'edit'
+							? 'Salvar alterações'
+							: 'Publicar anúncio'}
 			</button>
 		</form>
 	);

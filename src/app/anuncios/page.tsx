@@ -1,6 +1,8 @@
+import { Suspense } from 'react';
 import { SearchBar } from '@/components/SearchBar';
 import { ListingFilters } from '@/components/ListingFilters';
 import { ListingsGrid } from '@/components/listing/ListingsGrid';
+import { Pagination } from '@/components/listing/Pagination';
 import { Dukinha } from '@/components/Dukinha';
 import { searchListings } from '@/lib/listings-query';
 
@@ -19,19 +21,29 @@ type PageProps = {
 export default async function AnunciosPage({ searchParams }: PageProps) {
 	const sp = await searchParams;
 
-	let items: Awaited<ReturnType<typeof searchListings>>['items'] = [];
+	let result: Awaited<ReturnType<typeof searchListings>> = {
+		items: [],
+		total: 0,
+		page: 1,
+		pageSize: 24,
+		totalPages: 0,
+	};
 	let error = '';
 	try {
-		items = (await searchListings(sp)).items;
+		result = await searchListings(sp);
 	} catch (err) {
 		console.error('anuncios', err);
 		error = 'Não conseguimos carregar os anúncios agora.';
 	}
 
+	const { items, total, page, totalPages } = result;
+
 	return (
 		<div className="mx-auto w-full max-w-6xl px-4 py-6">
 			<h1 className="font-display text-2xl font-extrabold">Anúncios</h1>
-			<p className="text-sm text-muted-foreground">{items.length} materiais disponíveis</p>
+			<p className="text-sm text-muted-foreground">
+				{total} material{total !== 1 ? 'is' : ''} disponível{total !== 1 ? 'is' : ''}
+			</p>
 
 			<div className="sticky top-[68px] z-30 -mx-4 mt-4 bg-background/95 px-4 py-3 backdrop-blur">
 				<SearchBar initialQuery={typeof sp.q === 'string' ? sp.q : ''} />
@@ -65,6 +77,10 @@ export default async function AnunciosPage({ searchParams }: PageProps) {
 							</div>
 						)
 					)}
+
+					<Suspense>
+						<Pagination page={page} totalPages={totalPages} />
+					</Suspense>
 				</div>
 			</div>
 		</div>
