@@ -7,7 +7,6 @@ import type { StatusValue } from '@/lib/reeduca';
 type StatusTransitionButtonProps = {
 	listingId: string;
 	currentStatus: StatusValue;
-	onUpdate: (newStatus: StatusValue) => void;
 };
 
 const transitions: Record<StatusValue, { label: string; target: StatusValue; icon: typeof Clock }[]> = {
@@ -24,10 +23,11 @@ const transitions: Record<StatusValue, { label: string; target: StatusValue; ico
 	],
 };
 
-export function StatusTransitionButton({ listingId, currentStatus, onUpdate }: StatusTransitionButtonProps) {
+export function StatusTransitionButton({ listingId, currentStatus }: StatusTransitionButtonProps) {
+	const [status, setStatus] = useState(currentStatus);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
-	const options = transitions[currentStatus] || [];
+	const options = transitions[status] || [];
 
 	const changeStatus = async (target: StatusValue) => {
 		setLoading(true);
@@ -39,7 +39,7 @@ export function StatusTransitionButton({ listingId, currentStatus, onUpdate }: S
 				body: JSON.stringify({ status: target }),
 			});
 			if (res.ok) {
-				onUpdate(target);
+				setStatus(target);
 			} else {
 				const data = await res.json();
 				setError(data.error || 'Não foi possível alterar o status.');

@@ -170,7 +170,6 @@ export default async function ListingDetailPage({ params }: PageProps) {
 						<StatusTransitionButton
 							listingId={listing.id}
 							currentStatus={listing.status}
-							onUpdate={() => {}}
 						/>
 					</div>
 				)}
