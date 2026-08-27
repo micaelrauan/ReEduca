@@ -26,5 +26,6 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Supabase CLI
-supabase/
+# Supabase CLI (keep migrations, ignore generated)
+supabase/.temp/
+supabase/.env
