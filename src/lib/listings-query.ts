@@ -34,7 +34,8 @@ export async function searchListings(
 
 	let query = supabase
 		.from('listings')
-		.select('*, owner:users!owner_id(name)', { count: 'exact' });
+		.select('*, owner:users!owner_id(name)', { count: 'exact' })
+		.is('deleted_at', null);
 
 	// Filtros
 	if (q) {

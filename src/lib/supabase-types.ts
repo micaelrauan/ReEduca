@@ -9,6 +9,7 @@ export type Database = {
 					image_url: string | null;
 					region: string | null;
 					bio: string | null;
+					last_seen_at: string | null;
 					created_at: string;
 					updated_at: string;
 				};
@@ -19,6 +20,7 @@ export type Database = {
 					image_url?: string | null;
 					region?: string | null;
 					bio?: string | null;
+					last_seen_at?: string | null;
 					created_at?: string;
 					updated_at?: string;
 				};
@@ -29,6 +31,7 @@ export type Database = {
 					image_url?: string | null;
 					region?: string | null;
 					bio?: string | null;
+					last_seen_at?: string | null;
 					created_at?: string;
 					updated_at?: string;
 				};
@@ -49,7 +52,9 @@ export type Database = {
 					photo_urls: unknown;
 					seller_name: string | null;
 					seller_rating: number | null;
+					fav_count: number;
 					owner_id: string;
+					deleted_at: string | null;
 					created_at: string;
 					updated_at: string;
 				};
@@ -67,7 +72,9 @@ export type Database = {
 					photo_urls?: unknown;
 					seller_name?: string | null;
 					seller_rating?: number | null;
+					fav_count?: number;
 					owner_id: string;
+					deleted_at?: string | null;
 					created_at?: string;
 					updated_at?: string;
 				};
@@ -85,7 +92,9 @@ export type Database = {
 					photo_urls?: unknown;
 					seller_name?: string | null;
 					seller_rating?: number | null;
+					fav_count?: number;
 					owner_id?: string;
+					deleted_at?: string | null;
 					created_at?: string;
 					updated_at?: string;
 				};
@@ -139,6 +148,7 @@ export type Database = {
 					sender_id: string;
 					recipient_id: string;
 					listing_id: string | null;
+					read_at: string | null;
 					created_at: string;
 				};
 				Insert: {
@@ -147,6 +157,7 @@ export type Database = {
 					sender_id: string;
 					recipient_id: string;
 					listing_id?: string | null;
+					read_at?: string | null;
 					created_at?: string;
 				};
 				Update: {
@@ -155,6 +166,7 @@ export type Database = {
 					sender_id?: string;
 					recipient_id?: string;
 					listing_id?: string | null;
+					read_at?: string | null;
 					created_at?: string;
 				};
 				Relationships: [

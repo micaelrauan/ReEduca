@@ -4,17 +4,10 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Send } from 'lucide-react';
+import { useUser } from '@clerk/nextjs';
 import { StarRating } from '@/components/StarRating';
 import { cn } from '@/lib/utils';
-import { useUser } from '@clerk/nextjs';
-
-type Message = {
-	id: string;
-	text: string;
-	senderId: string;
-	listingId: string | null;
-	createdAt: string;
-};
+import { useRealtimeChat } from '@/hooks/useRealtimeChat';
 
 type ListingInfo = {
 	id: string;
@@ -38,13 +31,20 @@ export default function ChatThreadPage() {
 	const { user } = useUser();
 	const myId = user?.id;
 
-	const [messages, setMessages] = useState<Message[]>([]);
 	const [listing, setListing] = useState<ListingInfo | null>(null);
 	const [text, setText] = useState('');
 	const [stars, setStars] = useState(0);
+	const [ratingComment, setRatingComment] = useState('');
 	const [ratingSent, setRatingSent] = useState(false);
 	const [error, setError] = useState('');
+	const [online, setOnline] = useState(false);
 	const bottomRef = useRef<HTMLDivElement>(null);
+
+	const { messages, setMessages } = useRealtimeChat({
+		listingId,
+		otherUserId,
+		myId: myId || '',
+	});
 
 	const load = useCallback(async () => {
 		if (!myId || !listingId || !otherUserId) return;
@@ -53,15 +53,13 @@ export default function ChatThreadPage() {
 				`/api/messages?listingId=${encodeURIComponent(listingId)}&userId=${encodeURIComponent(otherUserId)}`,
 			);
 			if (res.ok) {
-				setMessages((await res.json()) as Message[]);
+				setMessages((await res.json()) as typeof messages);
 				setError('');
-			} else {
-				setError('Não conseguimos carregar essa conversa.');
 			}
 		} catch {
 			setError('Não conseguimos carregar essa conversa.');
 		}
-	}, [listingId, otherUserId, myId]);
+	}, [listingId, otherUserId, myId, setMessages]);
 
 	useEffect(() => {
 		load();
@@ -75,14 +73,45 @@ export default function ChatThreadPage() {
 	}, [listingId]);
 
 	useEffect(() => {
-		if (!myId) return undefined;
-		const interval = setInterval(load, 4000);
-		return () => clearInterval(interval);
-	}, [load, myId]);
+		if (!myId || !listingId || !otherUserId) return;
+		fetch('/api/messages/read', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ listingId, otherUserId }),
+		}).catch(() => {});
+	}, [myId, listingId, otherUserId, messages.length]);
 
 	useEffect(() => {
 		bottomRef.current?.scrollIntoView({ block: 'end' });
 	}, [messages]);
+
+	useEffect(() => {
+		if (!myId) return;
+		const interval = setInterval(() => {
+			fetch('/api/messages/heartbeat', { method: 'POST' }).catch(() => {});
+		}, 30000);
+		return () => clearInterval(interval);
+	}, [myId]);
+
+	useEffect(() => {
+		if (!otherUserId) return;
+		let cancelled = false;
+		const check = async () => {
+			try {
+				const res = await fetch(`/api/users/online?userId=${encodeURIComponent(otherUserId)}`);
+				if (res.ok) {
+					const data = await res.json();
+					if (!cancelled) setOnline(data.online);
+				}
+			} catch {}
+		};
+		check();
+		const interval = setInterval(check, 30000);
+		return () => {
+			cancelled = true;
+			clearInterval(interval);
+		};
+	}, [otherUserId]);
 
 	const send = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -96,7 +125,7 @@ export default function ChatThreadPage() {
 				body: JSON.stringify({ recipientId: otherUserId, listingId, text: body }),
 			});
 			if (!res.ok) throw new Error('falha');
-			const created = (await res.json()) as Message;
+			const created = (await res.json()) as (typeof messages)[number];
 			setMessages((prev) =>
 				prev.some((m) => m.id === created.id) ? prev : [...prev, created],
 			);
@@ -110,7 +139,12 @@ export default function ChatThreadPage() {
 		const res = await fetch('/api/ratings', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ targetId: otherUserId, listingId, stars, comment: '' }),
+			body: JSON.stringify({
+				targetId: otherUserId,
+				listingId,
+				stars,
+				comment: ratingComment.trim(),
+			}),
 		});
 		if (res.ok) setRatingSent(true);
 	};
@@ -133,6 +167,16 @@ export default function ChatThreadPage() {
 				</p>
 			)}
 
+			<div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+				<span
+					className={cn(
+						'h-2 w-2 rounded-full',
+						online ? 'bg-green-500' : 'bg-muted-foreground/40',
+					)}
+				/>
+				{online ? 'Online agora' : 'Offline'}
+			</div>
+
 			<div className="mt-4 min-h-[45vh] space-y-2">
 				{messages.length === 0 ? (
 					<p className="py-10 text-center text-sm text-muted-foreground">
@@ -144,12 +188,20 @@ export default function ChatThreadPage() {
 							key={m.id}
 							className={cn(
 								'max-w-[80%] rounded-2xl px-4 py-2 text-sm',
-								m.senderId === myId
+								m.sender_id === myId
 									? 'ml-auto bg-primary text-primary-foreground'
 									: 'bg-muted text-foreground',
 							)}
 						>
-							{m.text}
+							<p>{m.text}</p>
+							{m.sender_id === myId && (
+								<p className={cn(
+									'mt-0.5 text-[10px]',
+									m.read_at ? 'text-primary-foreground/70' : 'text-primary-foreground/40',
+								)}>
+									{m.read_at ? 'Lida' : 'Enviada'}
+								</p>
+							)}
 						</div>
 					))
 				)}
@@ -180,15 +232,22 @@ export default function ChatThreadPage() {
 				{ratingSent ? (
 					<p className="mt-2 text-sm font-semibold text-primary">Obrigado pela avaliação!</p>
 				) : (
-					<div className="mt-2 flex items-center gap-3">
+					<div className="mt-3 space-y-3">
 						<StarRating value={stars} onChange={setStars} size="h-6 w-6" />
+						<textarea
+							value={ratingComment}
+							onChange={(e) => setRatingComment(e.target.value)}
+							placeholder="Deixe um comentário (opcional)"
+							rows={2}
+							className="w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+						/>
 						<button
 							type="button"
 							onClick={rate}
 							disabled={!stars}
 							className="min-h-[40px] rounded-full bg-foreground px-4 text-sm font-bold text-background disabled:opacity-50"
 						>
-							Enviar
+							Enviar avaliação
 						</button>
 					</div>
 				)}

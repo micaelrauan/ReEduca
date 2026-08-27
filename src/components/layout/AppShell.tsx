@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Heart, Home, MessageCircle, PlusCircle, Search, User } from 'lucide-react';
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { Dukinha } from '@/components/Dukinha';
+import { UnreadBadge } from '@/components/UnreadBadge';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -92,12 +93,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 							key={item.to}
 							href={item.to}
 							className={cn(
-								'flex min-h-[56px] flex-col items-center justify-center gap-1 text-[11px] font-medium',
+								'relative flex min-h-[56px] flex-col items-center justify-center gap-1 text-[11px] font-medium',
 								isActive(item.to, item.exact) ? 'text-primary' : 'text-muted-foreground',
 							)}
 						>
 							<item.icon className="h-5 w-5" strokeWidth={2} />
 							{item.label}
+							{item.to === '/chat' && <UnreadBadge />}
 						</Link>
 					))}
 				</div>

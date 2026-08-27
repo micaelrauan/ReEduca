@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { ensureMirroredUser } from '@/lib/server-user';
 import { jsonError, parseBody, firstParam } from '@/lib/api';
 import { messageSendSchema } from '@/lib/validators';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function GET(req: Request) {
 	const userId = await ensureMirroredUser();
@@ -40,6 +41,11 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
 	const userId = await ensureMirroredUser();
 	if (!userId) return jsonError('Faça login para enviar mensagens.', 401);
+
+	const rl = checkRateLimit(userId, { max: 30, windowMs: 60_000, key: 'msg' });
+	if (!rl.ok) {
+		return jsonError(`Limite de mensagens atingido. Tente em ${Math.ceil(rl.resetIn / 1000)}s.`, 429);
+	}
 
 	const parsed = await parseBody(req, messageSendSchema);
 	if (parsed.error) return parsed.error;

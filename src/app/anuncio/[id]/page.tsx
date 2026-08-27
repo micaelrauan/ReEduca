@@ -6,6 +6,8 @@ import { auth } from '@clerk/nextjs/server';
 import { StarRating } from '@/components/StarRating';
 import { Gallery } from '@/components/listing/Gallery';
 import { ListingActions } from '@/components/listing/ListingActions';
+import { SimilarListings } from '@/components/listing/SimilarListings';
+import { StatusTransitionButton } from '@/components/listing/StatusTransitionButton';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import {
@@ -30,6 +32,7 @@ async function getListing(id: string): Promise<ListingWithOwnerName | null> {
 		.from('listings')
 		.select('*, owner:users!owner_id(name)')
 		.eq('id', id)
+		.is('deleted_at', null)
 		.single();
 	return data as ListingWithOwnerName | null;
 }
@@ -42,6 +45,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 		return {
 			title: listing.title,
 			description: (listing.description || listing.title).slice(0, 150),
+			openGraph: {
+				title: listing.title,
+				description: (listing.description || listing.title).slice(0, 150),
+				images: listing.photo_urls && Array.isArray(listing.photo_urls) && (listing.photo_urls as string[]).length > 0
+					? [(listing.photo_urls as string[])[0]]
+					: [],
+			},
 		};
 	} catch {
 		return { title: 'Anúncio' };
@@ -74,8 +84,31 @@ export default async function ListingDetailPage({ params }: PageProps) {
 	const isOwner = userId === listing.ownerId;
 	const photos = listingPhotos(listing);
 
+	const jsonLd = {
+		'@context': 'https://schema.org',
+		'@type': 'Product',
+		name: listing.title,
+		description: listing.description || listing.title,
+		brand: 'ReEduca',
+		condition: listing.condition === 'novo' ? 'NewCondition' : 'UsedCondition',
+		offers: listing.deal === 'venda' && listing.price
+			? {
+					'@type': 'Offer',
+					price: listing.price,
+					priceCurrency: 'BRL',
+					availability: listing.status === 'ativo' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+				}
+			: undefined,
+		image: photos[0] || undefined,
+	};
+
 	return (
 		<div className="mx-auto grid w-full max-w-5xl gap-6 px-4 py-6 md:grid-cols-[1.1fr_0.9fr]">
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+			/>
+
 			<Gallery photos={photos} title={listing.title} />
 
 			<div className="space-y-4">
@@ -111,7 +144,12 @@ export default async function ListingDetailPage({ params }: PageProps) {
 
 				<div className="rounded-2xl border border-border bg-card p-4">
 					<p className="text-xs font-semibold uppercase text-muted-foreground">Anunciante</p>
-					<p className="font-display text-base font-bold">{sellerName(listing)}</p>
+					<Link
+						href={`/usuario/${listing.ownerId}`}
+						className="font-display text-base font-bold hover:text-primary hover:underline"
+					>
+						{sellerName(listing)}
+					</Link>
 					<div className="mt-1 flex items-center gap-2">
 						<StarRating value={avg} />
 						<span className="text-xs text-muted-foreground">
@@ -122,12 +160,19 @@ export default async function ListingDetailPage({ params }: PageProps) {
 				</div>
 
 				{isOwner && (
-					<Link
-						href={`/anuncio/${listing.id}/editar`}
-						className="inline-flex min-h-[44px] items-center rounded-full border border-border px-5 text-sm font-semibold"
-					>
-						Editar este anúncio
-					</Link>
+					<div className="space-y-3">
+						<Link
+							href={`/anuncio/${listing.id}/editar`}
+							className="inline-flex min-h-[44px] items-center rounded-full border border-border px-5 text-sm font-semibold"
+						>
+							Editar este anúncio
+						</Link>
+						<StatusTransitionButton
+							listingId={listing.id}
+							currentStatus={listing.status}
+							onUpdate={() => {}}
+						/>
+					</div>
 				)}
 
 				<ListingActions listing={listing} isOwner={isOwner} />
@@ -140,6 +185,8 @@ export default async function ListingDetailPage({ params }: PageProps) {
 					.
 				</p>
 			</div>
+
+			<SimilarListings listing={listing} />
 		</div>
 	);
 }

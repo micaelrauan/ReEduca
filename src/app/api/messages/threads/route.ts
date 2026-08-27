@@ -10,6 +10,7 @@ export type ThreadSummary = {
 	otherId: string;
 	otherName: string;
 	last: string;
+	unread: number;
 };
 
 export async function GET() {
@@ -31,7 +32,11 @@ export async function GET() {
 		const isSender = m.sender_id === userId;
 		const other = isSender ? m.recipient_id : m.sender_id;
 		const key = `${m.listing_id}-${other}`;
-		if (map.has(key)) continue;
+		const existing = map.get(key);
+		if (existing) {
+			existing.unread += !isSender && !m.read_at ? 1 : 0;
+			continue;
+		}
 		map.set(key, {
 			key,
 			listingId: m.listing_id,
@@ -39,6 +44,7 @@ export async function GET() {
 			otherId: other,
 			otherName: ((isSender ? m.recipient : m.sender) as { name: string | null } | null)?.name || 'Estudante',
 			last: m.text,
+			unread: !isSender && !m.read_at ? 1 : 0,
 		});
 	}
 

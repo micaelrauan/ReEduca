@@ -3,10 +3,16 @@ import { supabase } from '@/lib/supabase';
 import { ensureMirroredUser } from '@/lib/server-user';
 import { jsonError, parseBody } from '@/lib/api';
 import { reportCreateSchema } from '@/lib/validators';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
 	const userId = await ensureMirroredUser();
 	if (!userId) return jsonError('Faça login para denunciar.', 401);
+
+	const rl = checkRateLimit(userId, { max: 5, windowMs: 300_000, key: 'report' });
+	if (!rl.ok) {
+		return jsonError('Limite de denúncias atingido. Aguarde.', 429);
+	}
 
 	const parsed = await parseBody(req, reportCreateSchema);
 	if (parsed.error) return parsed.error;

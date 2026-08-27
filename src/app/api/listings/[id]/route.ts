@@ -3,17 +3,24 @@ import { supabase } from '@/lib/supabase';
 import { getAuthUserId } from '@/lib/server-user';
 import { jsonError, parseBody } from '@/lib/api';
 import { listingUpdateSchema } from '@/lib/validators';
-import { serializeListing, type ListingWithOwnerName } from '@/lib/reeduca';
+import { serializeListing, type ListingWithOwnerName, type StatusValue } from '@/lib/reeduca';
 import { deleteListingPhotos } from '@/lib/storage';
 import type { Database } from '@/lib/supabase-types';
 
 type RouteContext = { params: Promise<{ id: string }> };
+
+const validTransitions: Record<StatusValue, StatusValue[]> = {
+	ativo: ['reservado', 'concluido'],
+	reservado: ['ativo', 'concluido'],
+	concluido: ['ativo'],
+};
 
 async function findListing(id: string): Promise<ListingWithOwnerName | null> {
 	const { data, error } = await supabase
 		.from('listings')
 		.select('*, owner:users!owner_id(name)')
 		.eq('id', id)
+		.is('deleted_at', null)
 		.single();
 	if (error || !data) return null;
 	return data as ListingWithOwnerName;
@@ -38,6 +45,16 @@ export async function PATCH(req: Request, ctx: RouteContext) {
 	const parsed = await parseBody(req, listingUpdateSchema);
 	if (parsed.error) return parsed.error;
 	const data = parsed.data;
+
+	if (data.status !== undefined && data.status !== listing.status) {
+		const allowed = validTransitions[listing.status as StatusValue] || [];
+		if (!allowed.includes(data.status as StatusValue)) {
+			return jsonError(
+				`Não é possível alterar de "${listing.status}" para "${data.status}".`,
+				422,
+			);
+		}
+	}
 
 	const updateData: Database['public']['Tables']['listings']['Update'] = {};
 	if (data.title !== undefined) updateData.title = data.title;
@@ -83,7 +100,10 @@ export async function DELETE(_req: Request, ctx: RouteContext) {
 			console.error('Erro ao limpar fotos do Storage:', err),
 		);
 
-		const { error } = await supabase.from('listings').delete().eq('id', id);
+		const { error } = await supabase
+			.from('listings')
+			.update({ deleted_at: new Date().toISOString() })
+			.eq('id', id);
 		if (error) throw error;
 		return NextResponse.json({ ok: true });
 	} catch (err) {

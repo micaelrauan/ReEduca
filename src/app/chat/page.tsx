@@ -11,6 +11,7 @@ type ThreadSummary = {
 	otherId: string;
 	otherName: string;
 	last: string;
+	unread: number;
 };
 
 export default function ChatListPage() {
@@ -56,12 +57,17 @@ export default function ChatListPage() {
 								className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
 							>
 								<Dukinha className="h-10 w-10" />
-								<div className="min-w-0">
+								<div className="min-w-0 flex-1">
 									<p className="truncate font-display font-bold">{t.listingTitle}</p>
 									<p className="truncate text-sm text-muted-foreground">
 										{t.otherName}: {t.last}
 									</p>
 								</div>
+								{t.unread > 0 && (
+									<span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-destructive px-1.5 text-[11px] font-bold text-destructive-foreground">
+										{t.unread > 99 ? '99+' : t.unread}
+									</span>
+								)}
 							</Link>
 						</li>
 					))}
