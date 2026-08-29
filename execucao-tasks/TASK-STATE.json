@@ -3,11 +3,11 @@
   "pipeline": {
     "name": "Reeduca",
     "started_at": "2026-08-29T14:00:00Z",
-    "last_updated": "2026-08-29T14:15:00Z",
+    "last_updated": "2026-08-29T14:20:00Z",
     "total_tasks": 5,
-    "completed": 3,
+    "completed": 4,
     "failed": 0,
-    "current_task": "Task-004"
+    "current_task": "Task-005"
   },
   "tasks": {
     "Task-001": {
@@ -35,11 +35,11 @@
       "error": null
     },
     "Task-004": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "started_at": "2026-08-29T14:15:00Z",
+      "completed_at": "2026-08-29T14:20:00Z",
       "retries": 0,
-      "validation_output": null,
+      "validation_output": "tsc: ok, build: ok",
       "error": null
     },
     "Task-005": {
@@ -73,6 +73,12 @@
         "src/app/api/messages/route.ts"
       ],
       "summary": "Corrigido bug do chat - API retornava camelCase (senderId) mas frontend esperava snake_case (sender_id). Adicionado recipient_id e read_at na resposta."
+    },
+    "Task-004": {
+      "files_modified": [
+        "src/components/profile/ProfileClient.tsx"
+      ],
+      "summary": "Adicionado campo bio no form de edição do perfil e exibição da bio no modo visualização"
     }
   },
   "log": [
@@ -93,6 +99,12 @@
       "task": "Task-003",
       "action": "completed",
       "message": "Chat corrigido - API agora retorna snake_case (sender_id, recipient_id, listing_id, read_at, created_at)"
+    },
+    {
+      "timestamp": "2026-08-29T14:20:00Z",
+      "task": "Task-004",
+      "action": "completed",
+      "message": "Perfil corrigido - campo bio adicionado ao formulário de edição"
     }
   ]
 }

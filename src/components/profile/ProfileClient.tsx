@@ -28,7 +28,7 @@ export function ProfileClient({ data, listingsByStatus }: ProfileClientProps) {
 	const router = useRouter();
 	const [tab, setTab] = useState<string>('ativo');
 	const [editing, setEditing] = useState(false);
-	const [form, setForm] = useState({ name: data.name ?? '', region: data.region ?? '' });
+	const [form, setForm] = useState({ name: data.name ?? '', region: data.region ?? '', bio: data.bio ?? '' });
 	const [saving, setSaving] = useState(false);
 
 	const saveProfile = async (e: React.FormEvent) => {
@@ -38,7 +38,7 @@ export function ProfileClient({ data, listingsByStatus }: ProfileClientProps) {
 			await fetch('/api/profile', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(form),
+				body: JSON.stringify({ name: form.name, region: form.region, bio: form.bio }),
 			});
 			setEditing(false);
 			router.refresh();
@@ -68,6 +68,13 @@ export function ProfileClient({ data, listingsByStatus }: ProfileClientProps) {
 								onChange={(e) => setForm({ ...form, region: e.target.value })}
 								placeholder="Cidade - bairro"
 							/>
+							<textarea
+								className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+								value={form.bio}
+								onChange={(e) => setForm({ ...form, bio: e.target.value })}
+								placeholder="Fale um pouco sobre você"
+								rows={3}
+							/>
 							<button
 								type="submit"
 								disabled={saving}
@@ -85,6 +92,9 @@ export function ProfileClient({ data, listingsByStatus }: ProfileClientProps) {
 							<p className="text-sm text-muted-foreground">
 								{data.region || 'Região não informada'}
 							</p>
+							{data.bio && (
+								<p className="mt-2 text-sm text-foreground/80">{data.bio}</p>
+							)}
 							<div className="mt-1 flex items-center gap-2">
 								<StarRating value={data.ratingAvg} />
 								<span className="text-xs text-muted-foreground">
