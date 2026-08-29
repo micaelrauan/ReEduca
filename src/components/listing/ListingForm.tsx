@@ -5,7 +5,7 @@ import { useState, useCallback } from 'react';
 import { CATEGORIES, CONDITIONS, DEALS, STATUSES } from '@/lib/reeduca';
 import { cn } from '@/lib/utils';
 import { PhotoUploader } from './PhotoUploader';
-import { uploadListingPhoto } from '@/lib/storage';
+import { uploadListingPhoto, deleteListingPhotoByPath } from '@/lib/storage';
 
 const field =
 	'w-full rounded-xl border border-border bg-card px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-ring';
@@ -55,6 +55,7 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 		status: initial?.status ?? 'ativo',
 	});
 	const [existingUrls, setExistingUrls] = useState<string[]>(initial?.photoUrls ?? []);
+	const [removedUrls, setRemovedUrls] = useState<string[]>([]);
 	const [newFiles, setNewFiles] = useState<File[]>([]);
 	const [saving, setSaving] = useState(false);
 	const [uploading, setUploading] = useState(false);
@@ -66,6 +67,10 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 		setNewFiles(files);
 	}, []);
 
+	const handleUrlsRemoved = useCallback((urls: string[]) => {
+		setRemovedUrls(urls);
+	}, []);
+
 	const uploadPhotos = async (id: string): Promise<string[]> => {
 		const urls: string[] = [...existingUrls];
 
@@ -75,6 +80,17 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 		}
 
 		return urls;
+	};
+
+	const deleteRemovedPhotos = async () => {
+		for (const url of removedUrls) {
+			try {
+				const path = url.split('/').slice(-2).join('/');
+				await deleteListingPhotoByPath(path);
+			} catch {
+				// Silently fail - orphaned files will be cleaned up later
+			}
+		}
 	};
 
 	const submit = async (e: React.FormEvent) => {
@@ -127,6 +143,10 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 					router.push(`/anuncio/${id}`);
 					return;
 				}
+			}
+
+			if (removedUrls.length > 0) {
+				await deleteRemovedPhotos();
 			}
 
 			router.push(`/anuncio/${id}`);
@@ -198,6 +218,8 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 			<PhotoUploader
 				existingUrls={existingUrls}
 				onUrlsChange={setExistingUrls}
+				removedUrls={removedUrls}
+				onUrlsRemoved={handleUrlsRemoved}
 				newFiles={newFiles}
 				onFilesChange={handleFilesChange}
 				disabled={isBusy}

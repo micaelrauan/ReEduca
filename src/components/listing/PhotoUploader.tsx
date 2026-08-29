@@ -11,6 +11,8 @@ const MAX_PHOTOS = 5;
 type PhotoUploaderProps = {
 	existingUrls: string[];
 	onUrlsChange: (urls: string[]) => void;
+	removedUrls?: string[];
+	onUrlsRemoved?: (urls: string[]) => void;
 	newFiles: File[];
 	onFilesChange: (files: File[]) => void;
 	disabled?: boolean;
@@ -19,6 +21,8 @@ type PhotoUploaderProps = {
 export function PhotoUploader({
 	existingUrls,
 	onUrlsChange,
+	removedUrls = [],
+	onUrlsRemoved,
 	newFiles,
 	onFilesChange,
 	disabled,
@@ -78,7 +82,11 @@ export function PhotoUploader({
 	);
 
 	const removeExisting = (index: number) => {
+		const removed = existingUrls[index];
 		onUrlsChange(existingUrls.filter((_, i) => i !== index));
+		if (removed && onUrlsRemoved) {
+			onUrlsRemoved([...removedUrls, removed]);
+		}
 	};
 
 	const removeNew = (index: number) => {

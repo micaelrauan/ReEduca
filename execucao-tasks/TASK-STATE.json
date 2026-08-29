@@ -1,0 +1,72 @@
+{
+  "$schema": "Estado de execução do pipeline de tarefas",
+  "pipeline": {
+    "name": "Reeduca",
+    "started_at": "2026-08-29T14:00:00Z",
+    "last_updated": "2026-08-29T14:05:00Z",
+    "total_tasks": 5,
+    "completed": 1,
+    "failed": 0,
+    "current_task": "Task-002"
+  },
+  "tasks": {
+    "Task-001": {
+      "status": "completed",
+      "started_at": "2026-08-29T14:00:00Z",
+      "completed_at": "2026-08-29T14:05:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok, eslint: ok, build: ok",
+      "error": null
+    },
+    "Task-002": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "retries": 0,
+      "validation_output": null,
+      "error": null
+    },
+    "Task-003": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "retries": 0,
+      "validation_output": null,
+      "error": null
+    },
+    "Task-004": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "retries": 0,
+      "validation_output": null,
+      "error": null
+    },
+    "Task-005": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null,
+      "retries": 0,
+      "validation_output": null,
+      "error": null
+    }
+  },
+  "checkpoints": {
+    "Task-001": {
+      "files_modified": [
+        "src/components/listing/PhotoUploader.tsx",
+        "src/components/listing/ListingForm.tsx",
+        "src/lib/storage.ts"
+      ],
+      "summary": "Adicionado rastreamento de URLs removidas no PhotoUploader, deletação de fotos do Storage ao salvar no ListingForm"
+    }
+  },
+  "log": [
+    {
+      "timestamp": "2026-08-29T14:05:00Z",
+      "task": "Task-001",
+      "action": "completed",
+      "message": "Fotos dos produtos corrigidas - rastreamento de remoção e limpeza do Storage"
+    }
+  ]
+}
