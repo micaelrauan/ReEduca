@@ -12,6 +12,7 @@ next-env.d.ts
 # Variáveis de ambiente (NUNCA commitar — contêm senhas/chaves)
 .env
 .env.local
+.env.hostinger
 .env*.local
 
 # Logs
@@ -29,3 +30,6 @@ Thumbs.db
 # Supabase CLI (keep migrations, ignore generated)
 supabase/.temp/
 supabase/.env
+
+# Graphify generated output
+graphify-out/
