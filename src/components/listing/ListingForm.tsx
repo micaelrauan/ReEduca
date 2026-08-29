@@ -6,6 +6,9 @@ import { CATEGORIES, CONDITIONS, DEALS, STATUSES } from '@/lib/reeduca';
 import { cn } from '@/lib/utils';
 import { PhotoUploader } from './PhotoUploader';
 import { uploadListingPhoto, deleteListingPhotoByPath } from '@/lib/storage';
+import { BrazilStateSelect } from '@/components/location/BrazilStateSelect';
+import { BrazilCitySelect } from '@/components/location/BrazilCitySelect';
+import { BRAZILIAN_STATES } from '@/lib/ibge';
 
 const field =
 	'w-full rounded-xl border border-border bg-card px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-ring';
@@ -57,6 +60,12 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 	const [existingUrls, setExistingUrls] = useState<string[]>(initial?.photoUrls ?? []);
 	const [removedUrls, setRemovedUrls] = useState<string[]>([]);
 	const [newFiles, setNewFiles] = useState<File[]>([]);
+	const [stateCode, setStateCode] = useState('');
+	const [city, setCity] = useState(() => {
+		const region = initial?.region ?? '';
+		const match = region.match(/^(.+?)\s*[-–]\s*[A-Z]{2}$/);
+		return match ? match[1] : region;
+	});
 	const [saving, setSaving] = useState(false);
 	const [uploading, setUploading] = useState(false);
 	const [error, setError] = useState('');
@@ -70,6 +79,19 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 	const handleUrlsRemoved = useCallback((urls: string[]) => {
 		setRemovedUrls(urls);
 	}, []);
+
+	const handleStateChange = useCallback((code: string) => {
+		setStateCode(code);
+		setCity('');
+		set('region', '');
+	}, [set]);
+
+	const handleCityChange = useCallback((c: string) => {
+		setCity(c);
+		const stateName = BRAZILIAN_STATES.find((s) => s.code === stateCode);
+		const region = c && stateName ? `${c} - ${stateName.uf}` : c;
+		set('region', region);
+	}, [stateCode, set]);
 
 	const uploadPhotos = async (id: string): Promise<string[]> => {
 		const urls: string[] = [...existingUrls];
@@ -288,12 +310,19 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 			</label>
 
 			<label className={labelCls}>
-				Região
-				<input
-					className={field}
-					value={form.region}
-					onChange={(e) => set('region', e.target.value)}
-					placeholder="Cidade - bairro"
+				Estado
+				<BrazilStateSelect
+					value={stateCode}
+					onChange={handleStateChange}
+				/>
+			</label>
+
+			<label className={labelCls}>
+				Cidade
+				<BrazilCitySelect
+					stateCode={stateCode}
+					value={city}
+					onChange={handleCityChange}
 				/>
 			</label>
 

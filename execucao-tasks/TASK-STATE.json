@@ -3,11 +3,11 @@
   "pipeline": {
     "name": "Reeduca",
     "started_at": "2026-08-29T14:00:00Z",
-    "last_updated": "2026-08-29T14:20:00Z",
+    "last_updated": "2026-08-29T14:30:00Z",
     "total_tasks": 5,
-    "completed": 4,
+    "completed": 5,
     "failed": 0,
-    "current_task": "Task-005"
+    "current_task": null
   },
   "tasks": {
     "Task-001": {
@@ -43,11 +43,11 @@
       "error": null
     },
     "Task-005": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "started_at": "2026-08-29T14:25:00Z",
+      "completed_at": "2026-08-29T14:30:00Z",
       "retries": 0,
-      "validation_output": null,
+      "validation_output": "tsc: ok, build: ok",
       "error": null
     }
   },
@@ -79,6 +79,15 @@
         "src/components/profile/ProfileClient.tsx"
       ],
       "summary": "Adicionado campo bio no form de edição do perfil e exibição da bio no modo visualização"
+    },
+    "Task-005": {
+      "files_modified": [
+        "src/lib/ibge.ts",
+        "src/components/location/BrazilStateSelect.tsx",
+        "src/components/location/BrazilCitySelect.tsx",
+        "src/components/listing/ListingForm.tsx"
+      ],
+      "summary": "Seletor de estados e cidades com dados do IBGE - input livre substituído por selects encadeados"
     }
   },
   "log": [
@@ -105,6 +114,12 @@
       "task": "Task-004",
       "action": "completed",
       "message": "Perfil corrigido - campo bio adicionado ao formulário de edição"
+    },
+    {
+      "timestamp": "2026-08-29T14:30:00Z",
+      "task": "Task-005",
+      "action": "completed",
+      "message": "Seletor de estados e cidades criado com dados do IBGE"
     }
   ]
 }
