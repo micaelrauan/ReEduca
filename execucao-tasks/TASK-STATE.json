@@ -3,11 +3,11 @@
   "pipeline": {
     "name": "Reeduca",
     "started_at": "2026-08-29T14:00:00Z",
-    "last_updated": "2026-08-29T14:05:00Z",
+    "last_updated": "2026-08-29T14:10:00Z",
     "total_tasks": 5,
-    "completed": 1,
+    "completed": 2,
     "failed": 0,
-    "current_task": "Task-002"
+    "current_task": "Task-003"
   },
   "tasks": {
     "Task-001": {
@@ -19,11 +19,11 @@
       "error": null
     },
     "Task-002": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "started_at": "2026-08-29T14:05:00Z",
+      "completed_at": "2026-08-29T14:10:00Z",
       "retries": 0,
-      "validation_output": null,
+      "validation_output": "tsc: ok, build: ok",
       "error": null
     },
     "Task-003": {
@@ -59,6 +59,14 @@
         "src/lib/storage.ts"
       ],
       "summary": "Adicionado rastreamento de URLs removidas no PhotoUploader, deletação de fotos do Storage ao salvar no ListingForm"
+    },
+    "Task-002": {
+      "files_modified": [
+        "src/app/page.tsx",
+        "src/components/home/StatsBar.tsx",
+        "src/components/home/HowItWorks.tsx"
+      ],
+      "summary": "Reorganizado homepage com StatsBar (anúncios, estudantes, estados) e seção Como Funciona com 3 passos"
     }
   },
   "log": [
@@ -67,6 +75,12 @@
       "task": "Task-001",
       "action": "completed",
       "message": "Fotos dos produtos corrigidas - rastreamento de remoção e limpeza do Storage"
+    },
+    {
+      "timestamp": "2026-08-29T14:10:00Z",
+      "task": "Task-002",
+      "action": "completed",
+      "message": "Homepage reorganizada com StatsBar e seção Como Funciona"
     }
   ]
 }

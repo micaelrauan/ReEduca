@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { Dukinha } from '@/components/Dukinha';
 import { ListingsGrid } from '@/components/listing/ListingsGrid';
+import { StatsBar } from '@/components/home/StatsBar';
+import { HowItWorks } from '@/components/home/HowItWorks';
 import { CATEGORIES, serializeListing } from '@/lib/reeduca';
 import { supabase } from '@/lib/supabase';
 
@@ -28,27 +30,28 @@ const icons = {
 	equipamentos: Laptop,
 };
 
-const marqueeWords = [
-	'livros parados',
-	'apostilas do ano passado',
-	'calculadora esquecida',
-	'mochila boa demais pra ficar guardada',
-	'canetas sobrando',
-	'kit de desenho técnico',
-];
-
 export default async function HomePage() {
 	let recent: ReturnType<typeof serializeListing>[] = [];
+	let listingsCount = 0;
+	let usersCount = 0;
+
 	try {
-		const { data: rows } = await supabase
-			.from('listings')
-			.select('*, owner:users!owner_id(name)')
-			.eq('status', 'ativo')
-			.order('created_at', { ascending: false })
-			.limit(8);
-		recent = (rows ?? []).map(serializeListing);
+		const [listingsResult, usersResult] = await Promise.all([
+			supabase
+				.from('listings')
+				.select('*, owner:users!owner_id(name)')
+				.eq('status', 'ativo')
+				.order('created_at', { ascending: false })
+				.limit(8),
+			supabase.from('listings').select('id', { count: 'exact', head: true }).eq('status', 'ativo'),
+			supabase.from('users').select('id', { count: 'exact', head: true }),
+		]);
+
+		recent = (listingsResult.data ?? []).map(serializeListing);
+		listingsCount = listingsResult.count ?? 0;
+		usersCount = usersResult.count ?? 0;
 	} catch (err) {
-		console.error('home listings', err);
+		console.error('home', err);
 	}
 
 	return (
@@ -60,11 +63,10 @@ export default async function HomePage() {
 							Feito por estudantes, para estudantes
 						</span>
 						<h1 className="font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
-							O que está parado com você pode{' '}
-							<span className="marker-underline">fazer a diferença</span> para outro estudante.
+							Venda, troque ou doe material de estudo.
 						</h1>
 						<p className="max-w-lg text-base text-muted-foreground">
-							Venda, troque ou doe livros, apostilas, papelaria e equipamentos de estudo. Sem
+							O que está parado com você pode fazer a diferença para outro estudante. Sem
 							burocracia, direto com quem estuda perto de você.
 						</p>
 
@@ -113,20 +115,14 @@ export default async function HomePage() {
 						</div>
 					</div>
 				</div>
-
-				<div className="overflow-hidden border-y border-border bg-primary py-2">
-					<div className="animate-marquee flex w-max gap-8 pr-8 text-sm font-semibold uppercase tracking-wide text-primary-foreground">
-						{[...marqueeWords, ...marqueeWords].map((word, i) => (
-							<span key={`${word}-${i}`} className="whitespace-nowrap">
-								{word} <span className="text-secondary">•</span>
-							</span>
-						))}
-					</div>
-				</div>
 			</section>
 
+			<StatsBar listingsCount={listingsCount} usersCount={usersCount} />
+
+			<HowItWorks />
+
 			<section className="mx-auto w-full max-w-6xl px-4 py-8">
-				<h2 className="font-display text-xl font-extrabold">Categorias em destaque</h2>
+				<h2 className="font-display text-xl font-extrabold">Categorias</h2>
 				<div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
 					{CATEGORIES.map((c) => {
 						const Icon = icons[c.value] || BookOpen;
