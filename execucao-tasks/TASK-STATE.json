@@ -3,11 +3,11 @@
   "pipeline": {
     "name": "Reeduca",
     "started_at": "2026-08-29T14:00:00Z",
-    "last_updated": "2026-08-29T14:10:00Z",
+    "last_updated": "2026-08-29T14:15:00Z",
     "total_tasks": 5,
-    "completed": 2,
+    "completed": 3,
     "failed": 0,
-    "current_task": "Task-003"
+    "current_task": "Task-004"
   },
   "tasks": {
     "Task-001": {
@@ -27,11 +27,11 @@
       "error": null
     },
     "Task-003": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "started_at": "2026-08-29T14:10:00Z",
+      "completed_at": "2026-08-29T14:15:00Z",
       "retries": 0,
-      "validation_output": null,
+      "validation_output": "tsc: ok, build: ok",
       "error": null
     },
     "Task-004": {
@@ -67,6 +67,12 @@
         "src/components/home/HowItWorks.tsx"
       ],
       "summary": "Reorganizado homepage com StatsBar (anúncios, estudantes, estados) e seção Como Funciona com 3 passos"
+    },
+    "Task-003": {
+      "files_modified": [
+        "src/app/api/messages/route.ts"
+      ],
+      "summary": "Corrigido bug do chat - API retornava camelCase (senderId) mas frontend esperava snake_case (sender_id). Adicionado recipient_id e read_at na resposta."
     }
   },
   "log": [
@@ -81,6 +87,12 @@
       "task": "Task-002",
       "action": "completed",
       "message": "Homepage reorganizada com StatsBar e seção Como Funciona"
+    },
+    {
+      "timestamp": "2026-08-29T14:15:00Z",
+      "task": "Task-003",
+      "action": "completed",
+      "message": "Chat corrigido - API agora retorna snake_case (sender_id, recipient_id, listing_id, read_at, created_at)"
     }
   ]
 }

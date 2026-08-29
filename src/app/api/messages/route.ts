@@ -31,9 +31,11 @@ export async function GET(req: Request) {
 		(rows ?? []).map((m) => ({
 			id: m.id,
 			text: m.text,
-			senderId: m.sender_id,
-			listingId: m.listing_id,
-			createdAt: m.created_at,
+			sender_id: m.sender_id,
+			recipient_id: m.recipient_id,
+			listing_id: m.listing_id,
+			read_at: m.read_at,
+			created_at: m.created_at,
 		})),
 	);
 }
@@ -71,9 +73,11 @@ export async function POST(req: Request) {
 			{
 				id: created.id,
 				text: created.text,
-				senderId: created.sender_id,
-				listingId: created.listing_id,
-				createdAt: created.created_at,
+				sender_id: created.sender_id,
+				recipient_id: created.recipient_id,
+				listing_id: created.listing_id,
+				read_at: created.read_at,
+				created_at: created.created_at,
 			},
 			{ status: 201 },
 		);
