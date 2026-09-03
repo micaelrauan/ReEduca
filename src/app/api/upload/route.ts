@@ -36,8 +36,11 @@ export async function POST(req: Request) {
 		.upload(path, buffer, { contentType: file.type, upsert: true });
 
 	if (error) {
-		console.error('Upload error:', error);
-		return NextResponse.json({ error: 'Erro ao enviar arquivo.' }, { status: 500 });
+		console.error('Upload error:', error.message, error);
+		const msg = error.message?.includes('Bucket not found')
+			? 'Bucket "listing-photos" não existe no Supabase Storage. Crie o bucket no Dashboard.'
+			: `Erro ao enviar: ${error.message}`;
+		return NextResponse.json({ error: msg }, { status: 500 });
 	}
 
 	const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);

@@ -155,14 +155,18 @@ export function ListingForm({ mode, listingId, initial }: ListingFormProps) {
 				setUploading(true);
 				try {
 					const allUrls = await uploadPhotos(id);
-					await fetch(`/api/listings/${id}`, {
+					const patchRes = await fetch(`/api/listings/${id}`, {
 						method: 'PATCH',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({ photoUrls: allUrls }),
 					});
-				} catch {
-					setError('Anúncio salvo, mas houve erro ao enviar as fotos. Você pode editá-lo depois.');
-					router.push(`/anuncio/${id}`);
+					if (!patchRes.ok) {
+						setError('Anúncio salvo, mas houve erro ao salvar as fotos.');
+						return;
+					}
+				} catch (err) {
+					const msg = err instanceof Error ? err.message : 'Erro ao enviar fotos.';
+					setError(`Anúncio salvo, mas ${msg} Você pode editá-lo depois.`);
 					return;
 				}
 			}
