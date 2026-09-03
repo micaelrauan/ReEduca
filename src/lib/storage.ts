@@ -1,7 +1,4 @@
-import { supabase } from './supabase';
-
-const BUCKET = 'listing-photos';
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export function validatePhotoFile(file: File): string | null {
@@ -14,34 +11,32 @@ export function validatePhotoFile(file: File): string | null {
 	return null;
 }
 
+/** Upload via API route (client-side safe). */
 export async function uploadListingPhoto(
 	listingId: string,
 	file: File,
 	index: number,
 ): Promise<string> {
-	const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
-	const path = `listings/${listingId}/${index}.${ext}`;
+	const fd = new FormData();
+	fd.append('file', file);
+	fd.append('listingId', listingId);
+	fd.append('index', String(index));
 
-	const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-		contentType: file.type,
-		upsert: true,
-	});
-
-	if (error) throw error;
-
-	const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-	return data.publicUrl;
+	const res = await fetch('/api/upload', { method: 'POST', body: fd });
+	const json = await res.json();
+	if (!res.ok) throw new Error(json.error || 'Erro ao enviar foto.');
+	return json.url as string;
 }
 
-export async function deleteListingPhotos(listingId: string): Promise<void> {
-	const { data: files } = await supabase.storage.from(BUCKET).list(`listings/${listingId}`);
-
-	if (!files || files.length === 0) return;
-
-	const paths = files.map((f) => `listings/${listingId}/${f.name}`);
-	await supabase.storage.from(BUCKET).remove(paths);
-}
-
+/** Delete a photo via API route (client-side safe). */
 export async function deleteListingPhotoByPath(path: string): Promise<void> {
-	await supabase.storage.from(BUCKET).remove([path]);
+	const res = await fetch('/api/upload/delete', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ path }),
+	});
+	if (!res.ok) {
+		const json = await res.json().catch(() => ({}));
+		throw new Error(json.error || 'Erro ao remover foto.');
+	}
 }

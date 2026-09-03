@@ -4,7 +4,7 @@ import { getAuthUserId } from '@/lib/server-user';
 import { jsonError, parseBody } from '@/lib/api';
 import { listingUpdateSchema } from '@/lib/validators';
 import { serializeListing, type ListingWithOwnerName, type StatusValue } from '@/lib/reeduca';
-import { deleteListingPhotos } from '@/lib/storage';
+import { deleteListingPhotos } from '@/lib/storage-server';
 import type { Database } from '@/lib/supabase-types';
 
 type RouteContext = { params: Promise<{ id: string }> };
