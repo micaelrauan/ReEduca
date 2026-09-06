@@ -3,9 +3,9 @@
   "pipeline": {
     "name": "Reeduca",
     "started_at": "2026-08-29T14:00:00Z",
-    "last_updated": "2026-09-05T00:35:00Z",
+    "last_updated": "2026-09-05T00:45:00Z",
     "total_tasks": 14,
-    "completed": 11,
+    "completed": 12,
     "failed": 0,
     "current_task": null
   },
@@ -94,6 +94,14 @@
       "status": "completed",
       "started_at": "2026-09-05T00:26:00Z",
       "completed_at": "2026-09-05T00:35:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok, eslint: ok",
+      "error": null
+    },
+    "Task-012": {
+      "status": "completed",
+      "started_at": "2026-09-05T00:36:00Z",
+      "completed_at": "2026-09-05T00:45:00Z",
       "retries": 0,
       "validation_output": "tsc: ok, eslint: ok",
       "error": null
@@ -187,6 +195,15 @@
         "src/app/admin/usuarios/[id]/page.tsx"
       ],
       "summary": "API de usuários com listagem, busca e filtros, detalhe com stats, PATCH para ban/desban/promote/demote, páginas admin com badges e ações"
+    },
+    "Task-012": {
+      "files_modified": [
+        "src/app/api/admin/listings/route.ts",
+        "src/app/api/admin/listings/[id]/route.ts",
+        "src/app/admin/anuncios/page.tsx",
+        "src/app/admin/anuncios/[id]/page.tsx"
+      ],
+      "summary": "API de anúncios com listagem, busca e filtros, detalhe com fotos/vendedor/denúncias, PATCH para hide/restore/feature/unfeature, páginas admin com badges e ações"
     }
   },
   "log": [
@@ -255,6 +272,12 @@
       "task": "Task-011",
       "action": "completed",
       "message": "Usuários CRUD completo - API list/detail/patch, busca/filtros, páginas admin com ações ban/promote"
+    },
+    {
+      "timestamp": "2026-09-05T00:45:00Z",
+      "task": "Task-012",
+      "action": "completed",
+      "message": "Anúncios CRUD completo - API list/detail/patch, busca/filtros/categorias, páginas admin com ações hide/restore/feature"
     }
   ]
 }
