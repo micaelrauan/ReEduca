@@ -6,6 +6,20 @@ export async function getAuthUserId(): Promise<string | null> {
 	return userId;
 }
 
+/** Verifica se o usuário autenticado é admin. */
+export async function isAdmin(): Promise<boolean> {
+	const userId = await getAuthUserId();
+	if (!userId) return false;
+
+	const { data } = await supabase
+		.from('users')
+		.select('role')
+		.eq('id', userId)
+		.single();
+
+	return data?.role === 'admin';
+}
+
 /** Garante que o usuário autenticado exista espelhado na tabela User e devolve o id. */
 export async function ensureMirroredUser(): Promise<string | null> {
 	const userId = await getAuthUserId();

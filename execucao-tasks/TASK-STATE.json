@@ -3,9 +3,9 @@
   "pipeline": {
     "name": "Reeduca",
     "started_at": "2026-08-29T14:00:00Z",
-    "last_updated": "2026-09-05T00:00:00Z",
+    "last_updated": "2026-09-05T00:05:00Z",
     "total_tasks": 14,
-    "completed": 6,
+    "completed": 7,
     "failed": 0,
     "current_task": null
   },
@@ -57,6 +57,14 @@
       "retries": 0,
       "validation_output": "tsc: ok, eslint: ok",
       "error": null
+    },
+    "Task-007": {
+      "status": "completed",
+      "started_at": "2026-09-05T00:03:00Z",
+      "completed_at": "2026-09-05T00:05:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok, eslint: ok",
+      "error": null
     }
   },
   "checkpoints": {
@@ -103,6 +111,14 @@
         "src/lib/supabase-types.ts"
       ],
       "summary": "Migration SQL com enums user_role/report_status, colunas role/banned_at/ban_reason em users, status/reviewed_by/note em reports, featured em listings, tabela admin_actions com indexes"
+    },
+    "Task-007": {
+      "files_modified": [
+        "src/lib/server-user.ts",
+        "src/middleware.ts",
+        "src/app/api/admin/check/route.ts"
+      ],
+      "summary": "Função isAdmin() que consulta role no banco, middleware protege /admin(.*) e rota GET /api/admin/check retorna { admin: true/false }"
     }
   },
   "log": [
@@ -141,6 +157,12 @@
       "task": "Task-006",
       "action": "completed",
       "message": "Schema admin criado - migration SQL com roles, admin_actions, banned_at, featured e tipos atualizados"
+    },
+    {
+      "timestamp": "2026-09-05T00:05:00Z",
+      "task": "Task-007",
+      "action": "completed",
+      "message": "Auth admin implementado - isAdmin(), middleware /admin e rota /api/admin/check"
     }
   ]
 }
