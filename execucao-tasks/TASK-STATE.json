@@ -3,9 +3,9 @@
   "pipeline": {
     "name": "Reeduca",
     "started_at": "2026-08-29T14:00:00Z",
-    "last_updated": "2026-09-05T00:15:00Z",
+    "last_updated": "2026-09-05T00:25:00Z",
     "total_tasks": 14,
-    "completed": 9,
+    "completed": 10,
     "failed": 0,
     "current_task": null
   },
@@ -81,6 +81,14 @@
       "retries": 0,
       "validation_output": "tsc: ok, eslint: ok",
       "error": null
+    },
+    "Task-010": {
+      "status": "completed",
+      "started_at": "2026-09-05T00:16:00Z",
+      "completed_at": "2026-09-05T00:25:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok, eslint: ok",
+      "error": null
     }
   },
   "checkpoints": {
@@ -151,6 +159,17 @@
         "src/components/admin/StatsCard.tsx"
       ],
       "summary": "Dashboard API com métricas (usuários, anúncios, denúncias, mensagens, gráfico 30 dias, top categorias/regiões) + componente StatsCard + página admin com recharts"
+    },
+    "Task-010": {
+      "files_modified": [
+        "src/app/api/admin/reports/route.ts",
+        "src/app/api/admin/reports/[id]/route.ts",
+        "src/components/admin/DataTable.tsx",
+        "src/components/admin/ConfirmDialog.tsx",
+        "src/app/admin/denuncias/page.tsx",
+        "src/app/admin/denuncias/[id]/page.tsx"
+      ],
+      "summary": "API de denúncias com listagem e filtros, detalhe com ações (dispensar/ocultar/banir), DataTable genérico, ConfirmDialog, páginas admin com badges de status"
     }
   },
   "log": [
@@ -207,6 +226,12 @@
       "task": "Task-009",
       "action": "completed",
       "message": "Dashboard admin com métricas, gráfico 30 dias, top categorias/regiões e recharts"
+    },
+    {
+      "timestamp": "2026-09-05T00:25:00Z",
+      "task": "Task-010",
+      "action": "completed",
+      "message": "Denúncias CRUD completo - API list/detail/patch, DataTable, ConfirmDialog, páginas admin"
     }
   ]
 }
