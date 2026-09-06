@@ -3,9 +3,9 @@
   "pipeline": {
     "name": "Reeduca",
     "started_at": "2026-08-29T14:00:00Z",
-    "last_updated": "2026-09-05T00:05:00Z",
+    "last_updated": "2026-09-05T00:10:00Z",
     "total_tasks": 14,
-    "completed": 7,
+    "completed": 8,
     "failed": 0,
     "current_task": null
   },
@@ -65,6 +65,14 @@
       "retries": 0,
       "validation_output": "tsc: ok, eslint: ok",
       "error": null
+    },
+    "Task-008": {
+      "status": "completed",
+      "started_at": "2026-09-05T00:06:00Z",
+      "completed_at": "2026-09-05T00:10:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok, eslint: ok",
+      "error": null
     }
   },
   "checkpoints": {
@@ -119,6 +127,14 @@
         "src/app/api/admin/check/route.ts"
       ],
       "summary": "Função isAdmin() que consulta role no banco, middleware protege /admin(.*) e rota GET /api/admin/check retorna { admin: true/false }"
+    },
+    "Task-008": {
+      "files_modified": [
+        "src/components/admin/Sidebar.tsx",
+        "src/app/admin/layout.tsx",
+        "src/app/admin/page.tsx"
+      ],
+      "summary": "Layout admin com sidebar de navegação, verificação de role via isAdmin(), redirecionamento para não-admins e página placeholder do dashboard"
     }
   },
   "log": [
@@ -163,6 +179,12 @@
       "task": "Task-007",
       "action": "completed",
       "message": "Auth admin implementado - isAdmin(), middleware /admin e rota /api/admin/check"
+    },
+    {
+      "timestamp": "2026-09-05T00:10:00Z",
+      "task": "Task-008",
+      "action": "completed",
+      "message": "Layout admin criado - sidebar com navegação, verificação de role e página placeholder"
     }
   ]
 }
