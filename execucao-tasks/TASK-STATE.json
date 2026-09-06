@@ -3,9 +3,9 @@
   "pipeline": {
     "name": "Reeduca",
     "started_at": "2026-08-29T14:00:00Z",
-    "last_updated": "2026-08-29T14:30:00Z",
-    "total_tasks": 5,
-    "completed": 5,
+    "last_updated": "2026-09-05T00:00:00Z",
+    "total_tasks": 14,
+    "completed": 6,
     "failed": 0,
     "current_task": null
   },
@@ -49,6 +49,14 @@
       "retries": 0,
       "validation_output": "tsc: ok, build: ok",
       "error": null
+    },
+    "Task-006": {
+      "status": "completed",
+      "started_at": "2026-09-05T00:00:00Z",
+      "completed_at": "2026-09-05T00:02:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok, eslint: ok",
+      "error": null
     }
   },
   "checkpoints": {
@@ -88,6 +96,13 @@
         "src/components/listing/ListingForm.tsx"
       ],
       "summary": "Seletor de estados e cidades com dados do IBGE - input livre substituído por selects encadeados"
+    },
+    "Task-006": {
+      "files_modified": [
+        "docs/migrations/20260904-admin-schema.sql",
+        "src/lib/supabase-types.ts"
+      ],
+      "summary": "Migration SQL com enums user_role/report_status, colunas role/banned_at/ban_reason em users, status/reviewed_by/note em reports, featured em listings, tabela admin_actions com indexes"
     }
   },
   "log": [
@@ -120,6 +135,12 @@
       "task": "Task-005",
       "action": "completed",
       "message": "Seletor de estados e cidades criado com dados do IBGE"
+    },
+    {
+      "timestamp": "2026-09-05T00:02:00Z",
+      "task": "Task-006",
+      "action": "completed",
+      "message": "Schema admin criado - migration SQL com roles, admin_actions, banned_at, featured e tipos atualizados"
     }
   ]
 }

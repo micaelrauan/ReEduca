@@ -9,6 +9,9 @@ export type Database = {
 					image_url: string | null;
 					region: string | null;
 					bio: string | null;
+					role: string;
+					banned_at: string | null;
+					ban_reason: string | null;
 					last_seen_at: string | null;
 					created_at: string;
 					updated_at: string;
@@ -20,6 +23,9 @@ export type Database = {
 					image_url?: string | null;
 					region?: string | null;
 					bio?: string | null;
+					role?: string;
+					banned_at?: string | null;
+					ban_reason?: string | null;
 					last_seen_at?: string | null;
 					created_at?: string;
 					updated_at?: string;
@@ -31,6 +37,9 @@ export type Database = {
 					image_url?: string | null;
 					region?: string | null;
 					bio?: string | null;
+					role?: string;
+					banned_at?: string | null;
+					ban_reason?: string | null;
 					last_seen_at?: string | null;
 					created_at?: string;
 					updated_at?: string;
@@ -53,6 +62,7 @@ export type Database = {
 					seller_name: string | null;
 					seller_rating: number | null;
 					fav_count: number;
+					featured: boolean;
 					owner_id: string;
 					deleted_at: string | null;
 					created_at: string;
@@ -73,6 +83,7 @@ export type Database = {
 					seller_name?: string | null;
 					seller_rating?: number | null;
 					fav_count?: number;
+					featured?: boolean;
 					owner_id: string;
 					deleted_at?: string | null;
 					created_at?: string;
@@ -93,6 +104,7 @@ export type Database = {
 					seller_name?: string | null;
 					seller_rating?: number | null;
 					fav_count?: number;
+					featured?: boolean;
 					owner_id?: string;
 					deleted_at?: string | null;
 					created_at?: string;
@@ -252,6 +264,10 @@ export type Database = {
 					kind: string;
 					reporter_id: string | null;
 					listing_id: string | null;
+					status: string;
+					reviewed_by: string | null;
+					reviewed_at: string | null;
+					note: string | null;
 					created_at: string;
 				};
 				Insert: {
@@ -260,6 +276,10 @@ export type Database = {
 					kind: string;
 					reporter_id?: string | null;
 					listing_id?: string | null;
+					status?: string;
+					reviewed_by?: string | null;
+					reviewed_at?: string | null;
+					note?: string | null;
 					created_at?: string;
 				};
 				Update: {
@@ -268,6 +288,10 @@ export type Database = {
 					kind?: string;
 					reporter_id?: string | null;
 					listing_id?: string | null;
+					status?: string;
+					reviewed_by?: string | null;
+					reviewed_at?: string | null;
+					note?: string | null;
 					created_at?: string;
 				};
 				Relationships: [
@@ -281,6 +305,44 @@ export type Database = {
 					{
 						foreignKeyName: 'reports_reporter_id_fkey';
 						columns: ['reporter_id'];
+						isOneToOne: false;
+						referencedRelation: 'users';
+						referencedColumns: ['id'];
+					},
+				];
+			};
+			admin_actions: {
+				Row: {
+					id: string;
+					admin_id: string;
+					action: string;
+					target_type: string;
+					target_id: string;
+					note: string | null;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					admin_id: string;
+					action: string;
+					target_type: string;
+					target_id: string;
+					note?: string | null;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					admin_id?: string;
+					action?: string;
+					target_type?: string;
+					target_id?: string;
+					note?: string | null;
+					created_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'admin_actions_admin_id_fkey';
+						columns: ['admin_id'];
 						isOneToOne: false;
 						referencedRelation: 'users';
 						referencedColumns: ['id'];
