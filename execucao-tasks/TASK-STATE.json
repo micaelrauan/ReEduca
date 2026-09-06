@@ -3,9 +3,9 @@
   "pipeline": {
     "name": "Reeduca",
     "started_at": "2026-08-29T14:00:00Z",
-    "last_updated": "2026-09-05T00:45:00Z",
+    "last_updated": "2026-09-05T00:55:00Z",
     "total_tasks": 14,
-    "completed": 12,
+    "completed": 13,
     "failed": 0,
     "current_task": null
   },
@@ -102,6 +102,14 @@
       "status": "completed",
       "started_at": "2026-09-05T00:36:00Z",
       "completed_at": "2026-09-05T00:45:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok, eslint: ok",
+      "error": null
+    },
+    "Task-013": {
+      "status": "completed",
+      "started_at": "2026-09-05T00:46:00Z",
+      "completed_at": "2026-09-05T00:55:00Z",
       "retries": 0,
       "validation_output": "tsc: ok, eslint: ok",
       "error": null
@@ -204,6 +212,15 @@
         "src/app/admin/anuncios/[id]/page.tsx"
       ],
       "summary": "API de anúncios com listagem, busca e filtros, detalhe com fotos/vendedor/denúncias, PATCH para hide/restore/feature/unfeature, páginas admin com badges e ações"
+    },
+    "Task-013": {
+      "files_modified": [
+        "src/app/api/admin/chat/threads/route.ts",
+        "src/app/api/admin/chat/[listingId]/[userId]/route.ts",
+        "src/app/admin/chat/page.tsx",
+        "src/app/admin/chat/[listingId]/[userId]/page.tsx"
+      ],
+      "summary": "Chat admin readonly - API threads com agrupamento por conversa, API messages com nomes de usuário, páginas com busca e visualização de conversas"
     }
   },
   "log": [
@@ -278,6 +295,12 @@
       "task": "Task-012",
       "action": "completed",
       "message": "Anúncios CRUD completo - API list/detail/patch, busca/filtros/categorias, páginas admin com ações hide/restore/feature"
+    },
+    {
+      "timestamp": "2026-09-05T00:55:00Z",
+      "task": "Task-013",
+      "action": "completed",
+      "message": "Chat admin readonly completo - API threads/messages, páginas com busca e visualização de conversas"
     }
   ]
 }
