@@ -3,9 +3,9 @@
   "pipeline": {
     "name": "Reeduca",
     "started_at": "2026-08-29T14:00:00Z",
-    "last_updated": "2026-09-05T00:10:00Z",
+    "last_updated": "2026-09-05T00:15:00Z",
     "total_tasks": 14,
-    "completed": 8,
+    "completed": 9,
     "failed": 0,
     "current_task": null
   },
@@ -73,6 +73,14 @@
       "retries": 0,
       "validation_output": "tsc: ok, eslint: ok",
       "error": null
+    },
+    "Task-009": {
+      "status": "completed",
+      "started_at": "2026-09-05T00:11:00Z",
+      "completed_at": "2026-09-05T00:15:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok, eslint: ok",
+      "error": null
     }
   },
   "checkpoints": {
@@ -135,6 +143,14 @@
         "src/app/admin/page.tsx"
       ],
       "summary": "Layout admin com sidebar de navegação, verificação de role via isAdmin(), redirecionamento para não-admins e página placeholder do dashboard"
+    },
+    "Task-009": {
+      "files_modified": [
+        "src/app/api/admin/stats/route.ts",
+        "src/app/admin/page.tsx",
+        "src/components/admin/StatsCard.tsx"
+      ],
+      "summary": "Dashboard API com métricas (usuários, anúncios, denúncias, mensagens, gráfico 30 dias, top categorias/regiões) + componente StatsCard + página admin com recharts"
     }
   },
   "log": [
@@ -185,6 +201,12 @@
       "task": "Task-008",
       "action": "completed",
       "message": "Layout admin criado - sidebar com navegação, verificação de role e página placeholder"
+    },
+    {
+      "timestamp": "2026-09-05T00:15:00Z",
+      "task": "Task-009",
+      "action": "completed",
+      "message": "Dashboard admin com métricas, gráfico 30 dias, top categorias/regiões e recharts"
     }
   ]
 }
