@@ -11,6 +11,7 @@ import {
 	Settings,
 	ArrowLeft,
 	Shield,
+	Wrench,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +21,7 @@ const adminNav = [
 	{ href: '/admin/usuarios', label: 'Usuários', icon: Users },
 	{ href: '/admin/anuncios', label: 'Anúncios', icon: ListIcon },
 	{ href: '/admin/chat', label: 'Chat', icon: MessageCircle },
+	{ href: '/admin/manutencao', label: 'Manutenção', icon: Wrench },
 	{ href: '/admin/config', label: 'Config', icon: Settings },
 ];
 
