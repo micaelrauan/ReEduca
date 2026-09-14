@@ -126,3 +126,25 @@ export function sellerName(listing: SerializedListing): string {
 export function sellerRating(listing: SerializedListing): number {
 	return listing.sellerRating ?? 0;
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Notificações                                                               */
+/* -------------------------------------------------------------------------- */
+
+export const NOTIFICATION_TYPES = [
+	{ value: 'new_message', label: 'Nova mensagem' },
+	{ value: 'new_favorite', label: 'Alguém favoritou seu anúncio' },
+	{ value: 'listing_sold', label: 'Anúncio marcado como vendido' },
+	{ value: 'rating_received', label: 'Nova avaliação recebida' },
+] as const;
+
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number]['value'];
+
+export type SerializedNotification = {
+	id: string;
+	type: NotificationType;
+	message: string;
+	listingId: string | null;
+	readAt: string | null;
+	createdAt: string;
+};

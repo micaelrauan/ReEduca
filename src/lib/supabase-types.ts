@@ -64,6 +64,7 @@ export type Database = {
 					fav_count: number;
 					featured: boolean;
 					owner_id: string;
+					expires_at: string | null;
 					deleted_at: string | null;
 					created_at: string;
 					updated_at: string;
@@ -85,6 +86,7 @@ export type Database = {
 					fav_count?: number;
 					featured?: boolean;
 					owner_id: string;
+					expires_at?: string | null;
 					deleted_at?: string | null;
 					created_at?: string;
 					updated_at?: string;
@@ -106,6 +108,7 @@ export type Database = {
 					fav_count?: number;
 					featured?: boolean;
 					owner_id?: string;
+					expires_at?: string | null;
 					deleted_at?: string | null;
 					created_at?: string;
 					updated_at?: string;
@@ -343,6 +346,84 @@ export type Database = {
 					{
 						foreignKeyName: 'admin_actions_admin_id_fkey';
 						columns: ['admin_id'];
+						isOneToOne: false;
+						referencedRelation: 'users';
+						referencedColumns: ['id'];
+					},
+				];
+			};
+			notifications: {
+				Row: {
+					id: string;
+					user_id: string;
+					type: string;
+					message: string;
+					listing_id: string | null;
+					read_at: string | null;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					user_id: string;
+					type: string;
+					message: string;
+					listing_id?: string | null;
+					read_at?: string | null;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					user_id?: string;
+					type?: string;
+					message?: string;
+					listing_id?: string | null;
+					read_at?: string | null;
+					created_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'notifications_listing_id_fkey';
+						columns: ['listing_id'];
+						isOneToOne: false;
+						referencedRelation: 'listings';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'notifications_user_id_fkey';
+						columns: ['user_id'];
+						isOneToOne: false;
+						referencedRelation: 'users';
+						referencedColumns: ['id'];
+					},
+				];
+			};
+			blocked_users: {
+				Row: {
+					blocker_id: string;
+					blocked_id: string;
+					created_at: string;
+				};
+				Insert: {
+					blocker_id: string;
+					blocked_id: string;
+					created_at?: string;
+				};
+				Update: {
+					blocker_id?: string;
+					blocked_id?: string;
+					created_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'blocked_users_blocked_id_fkey';
+						columns: ['blocked_id'];
+						isOneToOne: false;
+						referencedRelation: 'users';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'blocked_users_blocker_id_fkey';
+						columns: ['blocker_id'];
 						isOneToOne: false;
 						referencedRelation: 'users';
 						referencedColumns: ['id'];

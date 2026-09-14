@@ -150,7 +150,7 @@ export default function ChatThreadPage() {
 	};
 
 	return (
-		<div className="mx-auto flex w-full max-w-2xl flex-col px-4 py-4">
+		<div className="mx-auto flex w-full max-w-2xl flex-col px-4 py-4 pb-24 md:pb-4">
 			{listing && (
 				<Link
 					href={`/anuncio/${listing.id}`}
@@ -194,14 +194,19 @@ export default function ChatThreadPage() {
 							)}
 						>
 							<p>{m.text}</p>
-							{m.sender_id === myId && (
-								<p className={cn(
-									'mt-0.5 text-[10px]',
-									m.read_at ? 'text-primary-foreground/70' : 'text-primary-foreground/40',
-								)}>
-									{m.read_at ? 'Lida' : 'Enviada'}
-								</p>
-							)}
+							<div className={cn(
+								'mt-0.5 flex items-center gap-1 text-[10px]',
+								m.sender_id === myId
+									? 'justify-end text-primary-foreground/60'
+									: 'text-muted-foreground',
+							)}>
+								<span>{new Date(m.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+								{m.sender_id === myId && (
+									<span className={m.read_at ? 'text-primary-foreground/70' : ''}>
+										{m.read_at ? '✓✓' : '✓'}
+									</span>
+								)}
+							</div>
 						</div>
 					))
 				)}

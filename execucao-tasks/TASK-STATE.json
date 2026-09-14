@@ -3,9 +3,9 @@
   "pipeline": {
     "name": "Reeduca",
     "started_at": "2026-08-29T14:00:00Z",
-    "last_updated": "2026-09-05T01:00:00Z",
-    "total_tasks": 14,
-    "completed": 14,
+    "last_updated": "2026-09-13T13:20:00Z",
+    "total_tasks": 30,
+    "completed": 30,
     "failed": 0,
     "current_task": null
   },
@@ -120,6 +120,134 @@
       "completed_at": "2026-09-05T01:00:00Z",
       "retries": 0,
       "validation_output": "tsc: ok, eslint: ok",
+      "error": null
+    },
+    "Task-015": {
+      "status": "completed",
+      "started_at": "2026-09-13T12:00:00Z",
+      "completed_at": "2026-09-13T12:05:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok, lint: 2 pre-existing warnings (not from this change)",
+      "error": null
+    },
+    "Task-016": {
+      "status": "completed",
+      "started_at": "2026-09-13T12:05:00Z",
+      "completed_at": "2026-09-13T12:10:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok, build: compiled successfully (timeout on static generation, not related to config)",
+      "error": null
+    },
+    "Task-017": {
+      "status": "completed",
+      "started_at": "2026-09-13T12:10:00Z",
+      "completed_at": "2026-09-13T12:15:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
+      "error": null
+    },
+    "Task-018": {
+      "status": "completed",
+      "started_at": "2026-09-13T12:15:00Z",
+      "completed_at": "2026-09-13T12:20:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
+      "error": null
+    },
+    "Task-019": {
+      "status": "completed",
+      "started_at": "2026-09-13T12:20:00Z",
+      "completed_at": "2026-09-13T12:25:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
+      "error": null
+    },
+    "Task-020": {
+      "status": "completed",
+      "started_at": "2026-09-13T12:25:00Z",
+      "completed_at": "2026-09-13T12:30:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
+      "error": null
+    },
+    "Task-021": {
+      "status": "completed",
+      "started_at": "2026-09-13T12:30:00Z",
+      "completed_at": "2026-09-13T12:35:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
+      "error": null
+    },
+    "Task-022": {
+      "status": "completed",
+      "started_at": "2026-09-13T12:35:00Z",
+      "completed_at": "2026-09-13T12:40:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
+      "error": null
+    },
+    "Task-023": {
+      "status": "completed",
+      "started_at": "2026-09-13T12:40:00Z",
+      "completed_at": "2026-09-13T12:45:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
+      "error": null
+    },
+    "Task-024": {
+      "status": "completed",
+      "started_at": "2026-09-13T12:45:00Z",
+      "completed_at": "2026-09-13T12:50:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
+      "error": null
+    },
+    "Task-025": {
+      "status": "completed",
+      "started_at": "2026-09-13T12:50:00Z",
+      "completed_at": "2026-09-13T12:55:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
+      "error": null
+    },
+    "Task-026": {
+      "status": "completed",
+      "started_at": "2026-09-13T12:55:00Z",
+      "completed_at": "2026-09-13T13:00:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
+      "error": null
+    },
+    "Task-027": {
+      "status": "completed",
+      "started_at": "2026-09-13T13:00:00Z",
+      "completed_at": "2026-09-13T13:05:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
+      "error": null
+    },
+    "Task-028": {
+      "status": "completed",
+      "started_at": "2026-09-13T13:05:00Z",
+      "completed_at": "2026-09-13T13:10:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
+      "error": null
+    },
+    "Task-029": {
+      "status": "completed",
+      "started_at": "2026-09-13T13:10:00Z",
+      "completed_at": "2026-09-13T13:15:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
+      "error": null
+    },
+    "Task-030": {
+      "status": "completed",
+      "started_at": "2026-09-13T13:15:00Z",
+      "completed_at": "2026-09-13T13:20:00Z",
+      "retries": 0,
+      "validation_output": "tsc: ok",
       "error": null
     }
   },

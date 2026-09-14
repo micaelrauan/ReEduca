@@ -12,10 +12,6 @@ export const metadata: Metadata = {
 		'ReEduca é a plataforma onde estudantes vendem, trocam ou doam livros, apostilas, mochilas e materiais escolares que não usam mais.',
 };
 
-// O shell usa estado de auth do Clerk em todas as rotas; evita prerender
-// estático das páginas de erro do Next com o provider do Clerk.
-export const dynamic = 'force-dynamic';
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<ClerkProvider>

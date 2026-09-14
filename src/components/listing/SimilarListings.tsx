@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { MapPin } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Dukinha } from '@/components/Dukinha';
@@ -44,10 +45,12 @@ export async function SimilarListings({ listing }: Props) {
 						>
 							<div className="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-muted">
 								{photos.length > 0 ? (
-									<img
+									<Image
 										src={photos[0]}
 										alt={s.title}
-										className="h-full w-full object-cover transition-transform group-hover:scale-105"
+										fill
+										sizes="(max-width: 640px) 50vw, 25vw"
+										className="object-cover transition-transform group-hover:scale-105"
 									/>
 								) : (
 									<Dukinha className="h-10 w-10 text-muted-foreground/40" />

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
-import { MapPin } from 'lucide-react';
+import Image from 'next/image';
+import { MapPin, Calendar, Clock, Package } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { StarRating } from '@/components/StarRating';
 import { ListingsGrid } from '@/components/listing/ListingsGrid';
@@ -14,7 +15,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
 	const { data: user } = await supabase
 		.from('users')
-		.select('id, name, image_url, region, bio, created_at')
+		.select('id, name, image_url, region, bio, last_seen_at, created_at')
 		.eq('id', id)
 		.single();
 
@@ -46,10 +47,12 @@ export default async function PublicProfilePage({ params }: PageProps) {
 		<div className="mx-auto w-full max-w-4xl px-4 py-6">
 			<div className="flex items-center gap-4">
 				{user.image_url ? (
-					<img
+					<Image
 						src={user.image_url}
 						alt={user.name || 'Estudante'}
-						className="h-16 w-16 rounded-full object-cover"
+						width={64}
+						height={64}
+						className="rounded-full object-cover"
 					/>
 				) : (
 					<div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted text-xl font-bold text-muted-foreground">
@@ -71,6 +74,25 @@ export default async function PublicProfilePage({ params }: PageProps) {
 						</span>
 					</div>
 				</div>
+			</div>
+
+			<div className="mt-4 flex flex-wrap gap-4 text-xs text-muted-foreground">
+				<div className="flex items-center gap-1">
+					<Calendar className="h-3.5 w-3.5" />
+					<span>Membro desde {new Date(user.created_at).toLocaleDateString('pt-BR')}</span>
+				</div>
+				{user.last_seen_at && (
+					<div className="flex items-center gap-1">
+						<Clock className="h-3.5 w-3.5" />
+						<span>Último acesso: {new Date(user.last_seen_at).toLocaleDateString('pt-BR')}</span>
+					</div>
+				)}
+				{listings?.length !== undefined && (
+					<div className="flex items-center gap-1">
+						<Package className="h-3.5 w-3.5" />
+						<span>{listings.length} anúncio{listings.length !== 1 ? 's' : ''}</span>
+					</div>
+				)}
 			</div>
 
 			{user.bio && (

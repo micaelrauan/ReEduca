@@ -6,6 +6,7 @@ import { Heart, Home, MessageCircle, PlusCircle, Search, User } from 'lucide-rea
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { Dukinha } from '@/components/Dukinha';
 import { UnreadBadge } from '@/components/UnreadBadge';
+import { NotificationBell } from '@/components/NotificationBell';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -47,11 +48,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 							</Link>
 						))}
 					</nav>
-					<SignedIn>
-						<span className="ml-auto md:ml-0" title="Meu perfil">
-							<UserButton afterSignOutUrl="/" />
-						</span>
-					</SignedIn>
+				<SignedIn>
+					<NotificationBell />
+					<span className="ml-auto md:ml-0" title="Meu perfil">
+						<UserButton afterSignOutUrl="/" />
+					</span>
+				</SignedIn>
 					<SignedOut>
 						<Link
 							href="/sign-in"

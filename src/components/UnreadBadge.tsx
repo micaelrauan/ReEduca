@@ -1,14 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
+import { useRealtimeUnread } from '@/hooks/useRealtimeUnread';
 
 export function UnreadBadge() {
-	const { isSignedIn, isLoaded } = useUser();
-	const [count, setCount] = useState(0);
+	const { isSignedIn, isLoaded, user } = useUser();
+	const { count, setCount } = useRealtimeUnread({
+		userId: user?.id ?? '',
+	});
 
 	useEffect(() => {
-		if (!isLoaded || !isSignedIn) return;
+		if (!isLoaded || !isSignedIn || !user) return;
 
 		let cancelled = false;
 		const load = async () => {
@@ -22,12 +25,10 @@ export function UnreadBadge() {
 		};
 
 		load();
-		const interval = setInterval(load, 15000);
 		return () => {
 			cancelled = true;
-			clearInterval(interval);
 		};
-	}, [isLoaded, isSignedIn]);
+	}, [isLoaded, isSignedIn, user, setCount]);
 
 	if (!isSignedIn || count === 0) return null;
 

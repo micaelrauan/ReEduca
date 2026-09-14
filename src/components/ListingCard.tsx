@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Heart, MapPin } from 'lucide-react';
 import { StarRating } from '@/components/StarRating';
 import { cn } from '@/lib/utils';
@@ -28,11 +29,12 @@ export function ListingCard({ listing, favorite = false, onToggleFavorite }: Lis
 			<Link href={`/anuncio/${listing.id}`} className="block">
 				<div className="relative aspect-[4/3] overflow-hidden bg-muted">
 					{photo ? (
-						<img
+						<Image
 							src={photo}
 							alt={listing.title}
-							loading="lazy"
-							className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+							fill
+							sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+							className="object-cover transition-transform duration-500 group-hover:scale-105"
 						/>
 					) : (
 						<div className="flex h-full items-center justify-center text-sm text-muted-foreground">

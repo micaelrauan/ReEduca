@@ -547,6 +547,555 @@ npm run build
 
 ---
 
+---
+
+## Task-015 — Remover force-dynamic do layout.tsx
+
+**Depends:** []
+**Priority:** high
+**Status:** pending
+
+### Objetivo
+O layout raiz (`src/app/layout.tsx`) tem `export const dynamic = 'force-dynamic'` na linha 17, o que força todas as páginas a serem Server-Sent/SSR e impede caching estático. Essa configuração não é necessária no layout — cada página deve decidir individualmente.
+
+### Critérios de Aceite
+- [ ] `export const dynamic = 'force-dynamic'` removido de `src/app/layout.tsx`
+- [ ] Nenhuma página quebra após remoção
+- [ ] `npx tsc --noEmit` passa sem erros
+
+### Plano de Execução
+1. Ler `src/app/layout.tsx` e identificar a linha com `export const dynamic = 'force-dynamic'`
+2. Remover a linha
+3. Rodar typecheck para garantir que nada quebrou
+
+### Validação
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+### Auto-Fix
+> Se typecheck falhar → verificar se alguma página dependia do layout dynamic. Max retries: 2
+
+---
+
+## Task-016 — Configurar next.config.mjs
+
+**Depends:** []
+**Priority:** high
+**Status:** pending
+
+### Objetivo
+O `next.config.mjs` está vazio (`{}`). Precisa configurar `images.remotePatterns` para permitir imagens do Supabase Storage e adicionar headers de segurança.
+
+### Critérios de Aceite
+- [ ] `images.remotePatterns` configurado para o domínio do Supabase Storage
+- [ ] Security headers configurados (X-Content-Type-Options, X-Frame-Options, Referrer-Policy)
+- [ ] `npm run build` passa sem erros
+
+### Plano de Execução
+1. Ler `next.config.mjs` atual
+2. Adicionar `images.remotePatterns` com o padrão do Supabase Storage (formato `https://*.supabase.co`)
+3. Adicionar headers de segurança via `headers()` config
+4. Rodar build para validar
+
+### Validação
+```bash
+npm run build
+npx tsc --noEmit
+```
+
+### Auto-Fix
+> Se build falhar → verificar se remotePatterns está correto. Max retries: 2
+
+---
+
+## Task-017 — Substituir <img> por next/image
+
+**Depends:** [Task-016]
+**Priority:** high
+**Status:** pending
+
+### Objetivo
+Vários componentes usam tags `<img>` nativas em vez de `next/image`, perdendo otimização automática (lazy loading, formatação WebP, responsive sizing). Substituir por `Image` do Next.js nos componentes principais.
+
+### Componentes-alvo
+- `src/components/ListingCard.tsx` (linha 31-36)
+- `src/components/listing/SimilarListings.tsx` (linha 47-51)
+- `src/app/usuario/[id]/page.tsx` (linha 49-53)
+
+### Critérios de Aceite
+- [ ] Todas as tags `<img>` nos componentes-alvo substituídas por `Image` do `next/image`
+- [ ] `width` e `height` ou `fill` configurados corretamente
+- [ ] `alt` text preservado
+- [ ] `className` de estilo mantido
+- [ ] `npx tsc --noEmit` e `npm run build` passam
+
+### Plano de Execução
+1. Substituir `<img>` por `Image` em `ListingCard.tsx`
+2. Substituir `<img>` por `Image` em `SimilarListings.tsx`
+3. Substituir `<img>` por `Image` em `usuario/[id]/page.tsx`
+4. Rodar typecheck e build
+
+### Validação
+```bash
+npx tsc --noEmit
+npm run build
+```
+
+### Auto-Fix
+> Se typecheck falhar → ajustar props do Image. Max retries: 2
+
+---
+
+## Task-018 — Adicionar error.tsx às rotas principais
+
+**Depends:** []
+**Priority:** high
+**Status:** pending
+
+### Objetivo
+Nenhuma rota tem `error.tsx`, então erros de renderização mostram a página de erro genérica do Next.js. Criar `error.tsx` nas rotas principais com UI amigável.
+
+### Critérios de Aceite
+- [ ] `src/app/error.tsx` criado com UI de erro amigável
+- [ ] `src/app/anuncios/error.tsx` criado
+- [ ] `src/app/chat/error.tsx` criado
+- [ ] Cada error.tsx tem botão "Tentar novamente" que chama `reset()`
+- [ ] `npx tsc --noEmit` passa
+
+### Plano de Execução
+1. Criar `src/app/error.tsx` — componente client com mensagem de erro + botão retry
+2. Criar `src/app/anuncios/error.tsx` — variante específica para busca
+3. Criar `src/app/chat/error.tsx` — variante específica para chat
+4. Rodar typecheck
+
+### Validação
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+### Auto-Fix
+> Se typecheck falhar → verificar se 'use client' está presente. Max retries: 2
+
+---
+
+## Task-019 — Adicionar loading.tsx às rotas principais
+
+**Depends:** []
+**Priority:** high
+**Status:** pending
+
+### Objetivo
+Nenhuma rota tem `loading.tsx`, então o usuário não vê feedback visual durante carregamento de Server Components. Criar skeletons de carregamento nas rotas principais.
+
+### Critérios de Aceite
+- [ ] `src/app/loading.tsx` criado com skeleton da homepage
+- [ ] `src/app/anuncios/loading.tsx` criado com skeleton de grid
+- [ ] `src/app/chat/loading.tsx` criado com skeleton de conversas
+- [ ] Skeletons seguem o design system (cores, border-radius do Tailwind)
+- [ ] `npx tsc --noEmit` passa
+
+### Plano de Execução
+1. Criar `src/app/loading.tsx` com skeleton da homepage (hero + cards)
+2. Criar `src/app/anuncios/loading.tsx` com skeleton de grid de listings
+3. Criar `src/app/chat/loading.tsx` com skeleton de lista de conversas
+4. Rodar typecheck
+
+### Validação
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+### Auto-Fix
+> Se typecheck falhar → verificar se 'use client' não é necessário (loading.tsx pode ser server). Max retries: 2
+
+---
+
+## Task-020 — Integrar Sentry para monitoramento de erros
+
+**Depends:** []
+**Priority:** high
+**Status:** pending
+
+### Objetivo
+Não há monitoramento de erros em produção. Integrar Sentry para capturar erros automaticamente e receber alertas.
+
+### Critérios de Aceite
+- [ ] `@sentry/nextjs` instalado
+- [ ] `sentry.client.config.ts` e `sentry.server.config.ts` criados
+- [ ] `next.config.mjs` atualizado com plugin Sentry
+- [ ] Variáveis de ambiente `SENTRY_DSN` documentadas (não expostas)
+- [ ] `npm run build` passa
+
+### Plano de Execução
+1. Instalar `@sentry/nextjs`
+2. Rodar `npx @sentry/wizard@latest -i nextjs` ou configurar manualmente
+3. Criar arquivos de config do Sentry
+4. Atualizar `next.config.mjs` com wrap de export
+5. Adicionar `.env.example` com placeholder `SENTRY_DSN`
+6. Rodar build
+
+### Validação
+```bash
+npm run build
+npx tsc --noEmit
+```
+
+### Auto-Fix
+> Se build falhar → verificar se plugin Sentry está configurado corretamente. Max retries: 2
+
+---
+
+## Task-021 — Sistema de notificações
+
+**Depends:** [Task-015]
+**Priority:** high
+**Status:** pending
+
+### Objetivo
+Não há sistema de notificações. Usuários não são avisados sobre novas mensagens, favoritos recebidos ou atualizações de anúncios. Criar um sistema básico de notificações in-app.
+
+### Critérios de Aceite
+- [ ] Tabela `notifications` criada via migration SQL
+- [ ] API CRUD para notificações (`/api/notifications`)
+- [ ] Componente de sino/badge no header com contagem de não-lidas
+- [ ] Página `/notificacoes` com lista e marcar como lida
+- [ ] Notificações criadas automaticamente ao receber mensagem
+- [ ] `npx tsc --noEmit` passa
+
+### Plano de Execução
+1. Criar migration SQL para tabela `notifications` (id, user_id, type, title, body, read_at, listing_id, created_at)
+2. Atualizar `supabase-types.ts` com o novo tipo
+3. Criar API `/api/notifications` (GET lista, PATCH marca lida)
+4. Criar componente `NotificationBell` com badge de contagem
+5. Adicionar NotificationBell ao header em `AppShell.tsx`
+6. Criar página `/notificacoes/page.tsx`
+7. Integrar criação de notificação na API de mensagens
+
+### Validação
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+### Auto-Fix
+> Se typecheck falhar → ajustar tipos. Max retries: 2
+
+---
+
+## Task-022 — Expiração e renovação de anúncios
+
+**Depends:** [Task-015]
+**Priority:** high
+**Status:** pending
+
+### Objetivo
+Anúncios ficam ativos indefinidamente, poluindo a busca com materiais antigos. Implementar expiração automática após 30 dias e permiteção de renovação pelo dono.
+
+### Critérios de Aceite
+- [ ] Coluna `expires_at` adicionada na tabela `listings` (migration SQL)
+- [ ] Anúncios expiram automaticamente após 30 dias (status muda para `expirado`)
+- [ ] Botão "Renovar" aparece no perfil do dono para anúncios expirados
+- [ ] Renovação atualiza `expires_at` por mais 30 dias e volta status para `ativo`
+- [ ] Busca (`searchListings`) exclui anúncios expirados
+- [ ] `npx tsc --noEmit` passa
+
+### Plano de Execução
+1. Criar migration SQL para adicionar `expires_at` em `listings`
+2. Atualizar `supabase-types.ts`
+3. Criar API `/api/listings/[id]/renew` (PATCH)
+4. Atualizar `ProfileClient.tsx` para mostrar botão renovar
+5. Atualizar `searchListings` para filtrar expirados
+6. Criar cron/task para marcar expirados (ou checar no query)
+
+### Validação
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+### Auto-Fix
+> Se typecheck falhar → ajustar tipos. Max retries: 2
+
+---
+
+## Task-023 — Bloquear e denunciar usuário
+
+**Depends:** [Task-006]
+**Priority:** medium
+**Status:** pending
+
+### Objetivo
+Já existe denúncia de anúncios, mas não de usuários. Implementar bloqueio de usuário (impede mensagens) e denúncia de perfil.
+
+### Critérios de Aceite
+- [ ] Tabela `blocked_users` criada (blocker_id, blocked_id, created_at)
+- [ ] API `/api/users/[id]/block` (POST bloqueia, DELETE desbloqueia)
+- [ ] API `/api/reports` aceita `kind: 'usuario'` com `targetUserId`
+- [ ] Usuário bloqueado não pode enviar mensagens
+- [ ] Botão "Bloquear" no perfil público do usuário
+- [ ] Botão "Denunciar perfil" no perfil público
+- [ ] `npx tsc --noEmit` passa
+
+### Plano de Execução
+1. Criar migration SQL para `blocked_users`
+2. Criar API de block/unblock
+3. Atualizar API de reports para aceitar denúncia de usuário
+4. Atualizar `usuario/[id]/page.tsx` com botões bloquear/denunciar
+5. Atualizar API de mensagens para checar bloqueio
+
+### Validação
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+### Auto-Fix
+> Se typecheck falhar → ajustar tipos. Max retries: 2
+
+---
+
+## Task-024 — Sinais de confiança no perfil e anúncio
+
+**Depends:** [Task-015]
+**Priority:** medium
+**Status:** pending
+
+### Objetivo
+Usuários novos têm dificuldade em gerar confiança. Adicionar sinais visuais de verificação e atividade para aumentar conversão.
+
+### Critérios de Aceite
+- [ ] Badge "Membro desde [mês/ano]" no perfil público
+- [ ] Badge "Responde rápido" se último_seen_at < 24h
+- [ ] Contador de anúncios ativos no perfil
+- [ ] Indicador "Verificado" se email confirmado no Clerk
+- [ ] `npx tsc --noEmit` passa
+
+### Plano de Execução
+1. Atualizar `usuario/[id]/page.tsx` para mostrar "Membro desde"
+2. Adicionar lógica de "Responde rápido" baseada em `last_seen_at`
+3. Adicionar contador de anúncios ativos
+4. Buscar status de verificação do Clerk (via API ou campo)
+5. Rodar typecheck
+
+### Validação
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+### Auto-Fix
+> Se typecheck falhar → ajustar tipos. Max retries: 2
+
+---
+
+## Task-025 — Anúncios em destaque
+
+**Depends:** [Task-012]
+**Priority:** medium
+**Status:** pending
+
+### Objetivo
+O campo `featured` já existe na tabela `listings` (criado no Task-006), mas não é utilizado na UI. Implementar exibição de anúncios destacados na homepage e busca.
+
+### Critérios de Aceite
+- [ ] Homepage mostra seção "Destaques" com anúncios featured
+- [ ] Na busca, anúncios featured aparecem primeiro (antes dos normais)
+- [ ] Badge visual "Destaque" nos cards de anúncios featured
+- [ ] Admin pode marcar/desmarcar featured (já existe no admin)
+- [ ] `npx tsc --noEmit` passa
+
+### Plano de Execução
+1. Atualizar `src/app/page.tsx` para buscar e exibir anúncios featured
+2. Criar componente `FeaturedBadge` para o card
+3. Atualizar `searchListings` para ordenar featured primeiro
+4. Adicionar badge ao `ListingCard.tsx`
+5. Rodar typecheck
+
+### Validação
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+### Auto-Fix
+> Se typecheck falhar → ajustar tipos. Max retries: 2
+
+---
+
+## Task-026 — Autocomplete na busca
+
+**Depends:** []
+**Priority:** medium
+**Status:** pending
+
+### Objetivo
+O `SearchBar` não tem autocomplete, o que dificulta a digitação e descoberta de termos. Implementar sugestões automáticas baseadas em títulos de anúncios existentes.
+
+### Critérios de Aceite
+- [ ] API `/api/search/suggestions?q=...` retorna até 5 sugestões
+- [ ] SearchBar mostra dropdown com sugestões ao digitar
+- [ ] Sugestões aparecem após 2+ caracteres
+- [ ] Debounce de 300ms nas requisições
+- [ ] Selecionar sugestão navega para busca
+- [ ] `npx tsc --noEmit` passa
+
+### Plano de Execução
+1. Criar API `/api/search/suggestions` que busca títulos similares
+2. Atualizar `SearchBar.tsx` com estado de sugestões
+3. Adicionar debounce (useEffect + setTimeout)
+4. Adicionar dropdown de sugestões
+5. Rodar typecheck
+
+### Validação
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+### Auto-Fix
+> Se typecheck falhar → ajustar tipos. Max retries: 2
+
+---
+
+## Task-027 — Timestamps no chat + fix mobile
+
+**Depends:** []
+**Priority:** medium
+**Status:** pending
+
+### Objetivo
+O chat não mostra horários das mensagens e o mobile bottom nav cobre parte do chat. Corrigir ambos.
+
+### Critérios de Aceite
+- [ ] Cada mensagem mostra timestamp (HH:MM) abaixo ou ao lado
+- [ ] Timestamp usa locale pt-BR
+- [ ] Mobile: chat tem padding-bottom para não ficar atrás do nav fixo
+- [ ] `npx tsc --noEmit` passa
+
+### Plano de Execução
+1. Ler `src/app/chat/[listingId]/[userId]/page.tsx`
+2. Adicionar formatação de timestamp nas mensagens
+3. Adicionar `pb-20` ou similar ao container do chat para mobile
+4. Rodar typecheck
+
+### Validação
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+### Auto-Fix
+> Se typecheck falhar → ajustar formatação. Max retries: 2
+
+---
+
+## Task-028 — Substituir polling por Supabase Realtime
+
+**Depends:** [Task-027]
+**Priority:** medium
+**Status:** pending
+
+### Objetivo
+O `UnreadBadge` usa polling (setInterval a cada 15s) para checar mensagens não lidas. Isso é ineficiente. Substituir por Supabase Realtime para atualizações instantâneas.
+
+### Critérios de Aceite
+- [ ] `UnreadBadge` usa Supabase Realtime channel em vez de polling
+- [ ] Badge atualiza instantaneamente ao receber nova mensagem
+- [ ] Sem memory leak (channel desinscreve ao desmontar)
+- [ ] `npx tsc --noEmit` passa
+
+### Plano de Execução
+1. Ler `src/components/UnreadBadge.tsx`
+2. Substituir setInterval por `supabase.channel('unread')` com `.on('postgres_changes', ...)`
+3. Garantir cleanup no useEffect return
+4. Rodar typecheck
+
+### Validação
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+### Auto-Fix
+> Se typecheck falhar → ajustar tipos do Realtime. Max retries: 2
+
+---
+
+## Task-029 — Auditoria de acessibilidade
+
+**Depends:** []
+**Priority:** medium
+**Status:** pending
+
+### Objetivo
+Fazer auditoria básica de acessibilidade (WCAG 2.1 AA) nos componentes principais e corrigir problemas críticos.
+
+### Critérios de Aceite
+- [ ] Todos os botões têm `aria-label` quando usam só ícone
+- [ ] Inputs de formulário têm `htmlFor` + `id` associados
+- [ ] Contraste de cores passa no WCAG AA (4.5:1 para texto)
+- [ ] Navegação por teclado funciona em modais e formulários
+- [ ] `role` correto em componentes interativos
+- [ ] `npx tsc --noEmit` passa
+
+### Plano de Execução
+1. Auditar `AppShell.tsx` — navegação, aria-labels
+2. Auditar `ListingCard.tsx` — links, alt texts
+3. Auditar `ListingForm.tsx` — labels, aria
+4. Auditar `ListingActions.tsx` — botões
+5. Auditar `StarRating.tsx` — aria-labels
+6. Corrigir problemas encontrados
+7. Rodar typecheck
+
+### Validação
+```bash
+npx tsc --noEmit
+npm run lint
+```
+
+### Auto-Fix
+> Se typecheck falhar → ajustar props. Max retries: 2
+
+---
+
+## Task-030 — Headers de segurança avançados
+
+**Depends:** [Task-016]
+**Priority:** medium
+**Status:** pending
+
+### Objetivo
+Complementar os headers básicos do Task-016 com headers avançados de segurança para proteção contra ataques comuns.
+
+### Critérios de Aceite
+- [ ] `Content-Security-Policy` configurado (pelo menos script-src e style-src)
+- [ ] `Strict-Transport-Security` (HSTS) habilitado
+- [ ] `X-XSS-Protection` habilitado
+- [ ] `Permissions-Policy` restritivo (câmera, mic, geolocalização desabilitados)
+- [ ] `npm run build` passa
+
+### Plano de Execução
+1. Ler `next.config.mjs` atual (já atualizado no Task-016)
+2. Adicionar CSP headers via `headers()` config
+3. Adicionar HSTS, X-XSS-Protection, Permissions-Policy
+4. Testar que não quebra assets existentes
+5. Rodar build
+
+### Validação
+```bash
+npm run build
+npx tsc --noEmit
+```
+
+### Auto-Fix
+> Se build falhar → ajustar CSP para permitir fontes necessárias. Max retries: 2
+
+---
+
 <!-- 
 ## TEMPLATE — Copie e cole para novas tarefas:
 

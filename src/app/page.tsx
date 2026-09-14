@@ -31,22 +31,33 @@ const icons = {
 };
 
 export default async function HomePage() {
+	let featured: ReturnType<typeof serializeListing>[] = [];
 	let recent: ReturnType<typeof serializeListing>[] = [];
 	let listingsCount = 0;
 	let usersCount = 0;
 
 	try {
-		const [listingsResult, usersResult] = await Promise.all([
+		const [featuredResult, listingsResult, usersResult] = await Promise.all([
 			supabase
 				.from('listings')
 				.select('*, owner:users!owner_id(name)')
 				.eq('status', 'ativo')
+				.eq('featured', true)
+				.is('deleted_at', null)
+				.order('created_at', { ascending: false })
+				.limit(4),
+			supabase
+				.from('listings')
+				.select('*, owner:users!owner_id(name)')
+				.eq('status', 'ativo')
+				.is('deleted_at', null)
 				.order('created_at', { ascending: false })
 				.limit(8),
 			supabase.from('listings').select('id', { count: 'exact', head: true }).eq('status', 'ativo'),
 			supabase.from('users').select('id', { count: 'exact', head: true }),
 		]);
 
+		featured = (featuredResult.data ?? []).map(serializeListing);
 		recent = (listingsResult.data ?? []).map(serializeListing);
 		listingsCount = listingsResult.count ?? 0;
 		usersCount = usersResult.count ?? 0;
@@ -139,6 +150,20 @@ export default async function HomePage() {
 					})}
 				</div>
 			</section>
+
+			{featured.length > 0 && (
+				<section className="mx-auto w-full max-w-6xl px-4 pb-8">
+					<div className="flex items-end justify-between gap-3">
+						<h2 className="font-display text-xl font-extrabold">Destaques</h2>
+						<Link href="/anuncios?featured=true" className="text-sm font-semibold text-primary">
+							Ver todos
+						</Link>
+					</div>
+					<div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+						<ListingsGrid withReveal listings={featured} />
+					</div>
+				</section>
+			)}
 
 			<section className="mx-auto w-full max-w-6xl px-4 pb-12">
 				<div className="flex items-end justify-between gap-3">
